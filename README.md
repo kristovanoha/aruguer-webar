@@ -30,6 +30,12 @@ Projekt používá `next/font` pro optimalizaci písma Geist.
 
 Plánované režimy jsou Image Tracking, Surface AR, Location AR a Face Tracking.
 
+## AR demo
+
+Ukázka Surface AR je dostupná na `/ar/demo`. Obsahuje lokální GLB model domu, ovládání otáčení a přiblížení a tlačítko **Zobrazit v AR** přes `@google/model-viewer`.
+
+Skutečné umístění modelu je nutné ověřit na fyzickém Android telefonu s Android Chrome a podporou Google Play Services for AR. Na nepodporovaných zařízeních zůstává funkční 3D prohlížeč.
+
 ## Nasazení na Vercel
 Nasazení nevyžaduje vlastní `vercel.json`.
 

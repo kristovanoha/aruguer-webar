@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const plannedModes = [
   {
     number: "01",
@@ -62,6 +64,12 @@ export default function Home() {
               <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_12px_3px_rgba(110,231,183,0.35)]" />
               První verze aplikace je připravena. xxxx
             </div>
+            <Link
+              href="/ar/demo"
+              className="mt-5 inline-flex items-center rounded-full border border-blue-300/30 bg-blue-300/10 px-5 py-3 text-sm font-semibold text-blue-100 transition hover:border-blue-200/60 hover:bg-blue-300/20"
+            >
+              Vyzkoušet AR demo <span className="ml-2" aria-hidden="true">→</span>
+            </Link>
           </div>
         </section>
 
