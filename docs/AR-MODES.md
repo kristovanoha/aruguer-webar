@@ -44,6 +44,12 @@ MindAR stop API, renderer a modelové geometrie/materialy. Při selhání před
 aktivací kamery zobrazuje fallback a zachová interaktivní
 @google/model-viewer prohlížeč.
 
+Při běžícím demo režimu je viewport přes celou obrazovku. MindAR vlastní
+video element zadní kamery; komponenta jej pouze vizuálně vrství pod
+transparentní Three.js WebGL canvas. Video, WebGL canvas a případný CSS renderer
+mají explicitní vrstvy, takže skutečné prostředí zůstává viditelné a anchor
+modelu se dál řídí trackingem MindAR.
+
 MindAR 1.2.5 interně registruje resize listener bez veřejného destroy API.
 Komponenta proto uvolňuje všechny zdroje, které vlastní, a volá oficiální
 stop API; tento upstream limit je nutné znovu ověřit při budoucí aktualizaci

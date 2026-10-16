@@ -33,6 +33,29 @@ function disposeModel(model: Object3D) {
   });
 }
 
+function configureSeeThroughLayers(mindar: MindARThree, stage: HTMLDivElement) {
+  const { renderer, video, cssRenderer } = mindar;
+
+  // MindAR owns this stream. Only adjust presentation layers; do not create a
+  // second getUserMedia stream or replace the video source.
+  stage.style.background = "transparent";
+  if (video) {
+    video.style.zIndex = "0";
+    video.style.pointerEvents = "none";
+    video.style.objectFit = "cover";
+    video.style.transform = "none";
+  }
+
+  renderer.setClearColor(0x000000, 0);
+  renderer.domElement.style.zIndex = "1";
+  renderer.domElement.style.pointerEvents = "none";
+  renderer.domElement.style.background = "transparent";
+
+  cssRenderer.domElement.style.zIndex = "2";
+  cssRenderer.domElement.style.pointerEvents = "none";
+  cssRenderer.domElement.style.background = "transparent";
+}
+
 export default function ImageTrackingDemo() {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const runtimeRef = useRef<TrackingRuntime | null>(null);
@@ -60,6 +83,11 @@ export default function ImageTrackingDemo() {
       } catch {
         // MindAR can reject stop when camera initialization failed early.
       }
+    }
+    runtime.mindar.video?.pause();
+    if (runtime.mindar.video) {
+      runtime.mindar.video.srcObject = null;
+      runtime.mindar.video.remove();
     }
     runtime.renderer.setAnimationLoop(null);
     disposeModel(runtime.model);
@@ -133,6 +161,7 @@ export default function ImageTrackingDemo() {
 
       runtime.started = true;
       await mindar.start();
+      configureSeeThroughLayers(mindar, stageRef.current);
       mindar.renderer.setAnimationLoop(() => {
         mindar.renderer.render(mindar.scene, mindar.camera);
       });
@@ -152,11 +181,22 @@ export default function ImageTrackingDemo() {
       : state === "running"
         ? "Zaměřte kameru na referenční obrázek."
         : "Kamera je vypnutá.";
+  const isRunning = state === "running";
 
   return (
     <section className="space-y-4" aria-labelledby="image-tracking-heading">
-      <div className="relative h-[min(68vh,560px)] min-h-[420px] overflow-hidden rounded-3xl border border-white/10 bg-slate-950 shadow-2xl shadow-blue-950/30">
-        <div ref={stageRef} className="absolute inset-0" aria-label="Kamera pro Image Tracking" />
+      <div
+        className={
+          isRunning
+            ? "fixed inset-0 z-40 overflow-hidden bg-transparent"
+            : "relative h-[min(68vh,560px)] min-h-[420px] overflow-hidden rounded-3xl border border-white/10 bg-slate-950 shadow-2xl shadow-blue-950/30"
+        }
+      >
+        <div
+          ref={stageRef}
+          className="absolute inset-0 overflow-hidden bg-transparent"
+          aria-label="Kamera pro Image Tracking"
+        />
         {state !== "running" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 px-6 text-center">
             <p className="text-sm font-medium text-slate-200">{statusText}</p>
@@ -173,19 +213,26 @@ export default function ImageTrackingDemo() {
           </div>
         )}
         {state === "running" && (
-          <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center p-4">
-            <p className="rounded-full bg-slate-950/75 px-4 py-2 text-center text-xs text-white backdrop-blur">
+          <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4">
+            <p className="pointer-events-none rounded-full bg-slate-950/75 px-4 py-2 text-center text-xs text-white backdrop-blur">
               {statusText}
             </p>
+            <button
+              type="button"
+              onClick={stopTracking}
+              className="rounded-full bg-slate-950/80 px-4 py-2 text-xs font-semibold text-white backdrop-blur transition hover:bg-slate-800"
+            >
+              Zastavit
+            </button>
           </div>
         )}
       </div>
 
-      <div className="flex gap-3">
+      {!isRunning && <div className="flex gap-3">
         <button
           type="button"
           onClick={startTracking}
-          disabled={state === "loading" || state === "running" || isSupported === false}
+          disabled={state === "loading" || isSupported === false}
           className="flex-1 rounded-2xl bg-blue-400 px-4 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Spustit Image Tracking
@@ -193,12 +240,12 @@ export default function ImageTrackingDemo() {
         <button
           type="button"
           onClick={stopTracking}
-          disabled={state !== "running" && state !== "loading"}
+          disabled={state !== "loading"}
           className="rounded-2xl border border-white/15 px-4 py-3.5 text-sm font-semibold text-slate-200 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Zastavit
         </button>
-      </div>
+      </div>}
 
       {isSupported === false && (
         <p className="rounded-2xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm leading-6 text-amber-100" role="status">
