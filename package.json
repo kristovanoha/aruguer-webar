@@ -9,16 +9,19 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@google/model-viewer": "^4.4.0",
+    "@google/model-viewer": "^3.4.0",
+    "mind-ar": "^1.2.5",
     "next": "16.4.2",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.160.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",

@@ -5,9 +5,22 @@
 | Režim | Stav | Technologie | Aktuální vstup |
 | --- | --- | --- | --- |
 | Surface AR | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/demo-house.glb |
-| Image Tracking | Plánováno | MindAR nebo jiný ověřený image tracker | Není |
+| Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind |
 | Location AR | Plánováno | Ověřená location AR technologie | Není |
 | Face Tracking | Plánováno | MindAR nebo jiný ověřený face tracker | Není |
+
+## MindAR a kompatibilita
+
+MindAR 1.2.5 je použito pouze pro image tracking a je načítáno dynamicky v
+client komponentě. Balíček je MIT, ale jeho poslední npm publikace je z ledna
+2024, proto jde o údržbové riziko pro dlouhodobý komerční produkt. Oficiální
+MindAR dokumentace používá Three.js jako externí peer dependency; v projektu je
+zvolena verze 0.160.0, která zachovává starší export sRGBEncoding a současně
+odpovídá @google/model-viewer 3.4.0.
+
+MindAR obsahuje i Node-only compiler větev, která při bundlingu odkazuje na fs.
+Next.js proto používá prázdný browser alias v next.config.ts. Runtime image
+tracking tuto větev v prohlížeči nepoužívá.
 
 ## Surface AR demo
 
@@ -19,6 +32,22 @@ webxr scene-viewer.
 Tlačítko Zobrazit v AR volá activateAR(). Komponenta sleduje load, error a
 ar-status eventy. Při chybě zobrazuje uživatelskou zprávu a 3D viewer zůstává
 fallbackem, pokud se načtení modelu podaří.
+
+## Image Tracking demo
+
+Route /ar/image/demo používá přiložený černobílý obrázek domu jako target.
+Soubor house-target.mind vznikl lokálně pomocí scripts/compile-mind-target.mjs.
+Po spuštění kamery se načte stejný demo-house.glb model do anchoru targetu.
+
+Komponenta explicitně zastavuje MindAR, animation loop, camera stream přes
+MindAR stop API, renderer a modelové geometrie/materialy. Při selhání před
+aktivací kamery zobrazuje fallback a zachová interaktivní
+@google/model-viewer prohlížeč.
+
+MindAR 1.2.5 interně registruje resize listener bez veřejného destroy API.
+Komponenta proto uvolňuje všechny zdroje, které vlastní, a volá oficiální
+stop API; tento upstream limit je nutné znovu ověřit při budoucí aktualizaci
+knihovny před produkčním nasazením.
 
 ## Android Chrome
 

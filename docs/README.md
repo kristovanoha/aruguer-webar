@@ -19,13 +19,15 @@ Implementováno:
 
 - Next.js App Router aplikace s úvodní stránkou.
 - Route /ar/demo s lokálním GLB modelem domu.
+- Route /ar/image/demo s Image Tracking targetem z přiloženého obrázku.
 - Interaktivní prohlížení přes @google/model-viewer.
+- Image Tracking přes MindAR a Three.js v client-only modulu.
 - Pokus o Android AR přes WebXR nebo Scene Viewer.
 - Fallback pro zařízení, která AR nepodporují.
 
 Plánováno:
 
-- Image Tracking, Location AR a Face Tracking.
+- Location AR a Face Tracking.
 - Správa nemovitostí a assetů.
 - Autentizace, databáze a uploady do Supabase Storage.
 - Administrace, autorizace a produkční monitoring.

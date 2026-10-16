@@ -70,6 +70,12 @@ export default function Home() {
             >
               Vyzkoušet AR demo <span className="ml-2" aria-hidden="true">→</span>
             </Link>
+            <Link
+              href="/ar/image/demo"
+              className="ml-2 mt-5 inline-flex items-center rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-white/30 hover:bg-white/10"
+            >
+              Image Tracking demo <span className="ml-2" aria-hidden="true">→</span>
+            </Link>
           </div>
         </section>
 

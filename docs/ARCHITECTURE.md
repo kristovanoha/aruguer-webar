@@ -12,11 +12,12 @@ Tok požadavku:
 
     Browser
       -> Next.js App Router
-        -> src/app/page.tsx nebo src/app/ar/demo/page.tsx
+        -> src/app/page.tsx, src/app/ar/demo/page.tsx nebo
+           src/app/ar/image/demo/page.tsx
           -> UI a client komponenty
-            -> @google/model-viewer
-              -> public/models/demo-house.glb
-              -> WebXR nebo Android Scene Viewer
+            -> @google/model-viewer nebo MindAR + Three.js
+              -> public/models/demo-house.glb nebo public/targets/house-target.mind
+              -> WebXR, Android Scene Viewer nebo camera-based image tracking
 
 Odpovědnosti:
 
@@ -30,9 +31,14 @@ Odpovědnosti:
 
 - Route /: prezentační úvodní stránka s přehledem plánovaných režimů.
 - Route /ar/demo: demonstrace Surface AR.
+- Route /ar/image/demo: demonstrace Image Tracking s referenčním obrázkem.
 - ARModelViewer: client komponenta, dynamické načtení knihovny, viewer,
   loading/error stav a aktivace AR.
+- ImageTrackingDemo: client komponenta s dynamickým načtením MindAR, Three.js
+  a GLTFLoader; řídí camera session, anchor a cleanup.
 - demo-house.glb: lokální vlastní demonstrační model bez externího assetu.
+- house-target.png a house-target.mind: přiložený obrázek a jeho MindAR
+  feature data.
 
 ## Plánované hranice
 
@@ -60,7 +66,9 @@ jiné tajné údaje. Autorizace musí být vynucena serverově a pomocí RLS.
 
 - Neexistuje sdílený AR lifecycle kontrakt ani společný error model.
 - Neexistují API routes, services, typy doménových dat ani Supabase klient.
-- UI a AR stav jsou zatím lokální v jediné komponentě.
+- UI a AR stav jsou zatím lokální v jednotlivých demo komponentách.
 - Chybí automatizované testy a fyzické device testy.
+- MindAR 1.2.5 má starší dependency strom a je nutné sledovat jeho údržbu;
+  současné řešení používá cílený alias fs kvůli jeho Node-only compiler větvi.
 - Dopad cacheComponents a partialPrefetching na produkční WebAR je ověřen
   pouze buildem, nikoli provozním monitoringem.

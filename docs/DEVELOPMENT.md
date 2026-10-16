@@ -36,6 +36,16 @@ Při změně AR komponenty ověřte také dostupnost modelu:
 curl -I http://localhost:3000/models/demo-house.glb
 ~~~
 
+Při změně Image Tracking targetu znovu vytvořte .mind soubor:
+
+~~~bash
+node scripts/compile-mind-target.mjs
+~~~
+
+Compiler používá offline API MindAR a nativní balíček canvas. Je vhodné jej
+spouštět na Node.js 20; Node.js 24 nemusí mít pro canvas předpřipravený
+binární modul. Výstup patří do public/targets/house-target.mind.
+
 ## Vývojové zásady
 
 - Nejprve načtěte AGENTS.md a relevantní dokumentaci v docs/.
@@ -51,5 +61,5 @@ curl -I http://localhost:3000/models/demo-house.glb
 ## Testovací mezery
 
 Projekt nemá automatizovanou testovací sadu. Zbývá ověřit zejména povolení
-kamery, odmítnutí kamery, návrat z AR session, opakovanou aktivaci, rotaci
-displeje, throttling a chování při pomalé síti.
+kamery, odmítnutí kamery, rozpoznání targetu, návrat z AR session, opakovanou
+aktivaci, rotaci displeje, throttling a chování při pomalé síti.
