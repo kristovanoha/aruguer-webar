@@ -10,10 +10,10 @@
 
 ## Lokální spuštění
 
-Projekt používá Node.js 20.x. Verze je uvedena v `package.json` a `.nvmrc`.
-MindAR 1.2.5 má tranzitivní závislost `canvas@2.11.2`; Node.js 24 může při
-instalaci spustit `node-gyp` místo stažení předkompilovaného binárního
-balíčku. Před instalací závislostí proto použijte Node.js 20.
+Projekt používá Node.js 24.x, jak je uvedeno v `package.json` a `.nvmrc`.
+MindAR 1.2.5 deklaruje starší `canvas`, který může na Node.js 24 spouštět
+`node-gyp`. Projekt proto přes npm `overrides` používá `canvas@3.2.3`, která
+Node.js 24 podporuje.
 
 V kořeni projektu:
 
@@ -48,9 +48,9 @@ Při změně Image Tracking targetu znovu vytvořte .mind soubor:
 node scripts/compile-mind-target.mjs
 ~~~
 
-Compiler používá offline API MindAR a nativní balíček canvas. Je vhodné jej
-spouštět na Node.js 20; Node.js 24 nemusí mít pro canvas předpřipravený
-binární modul. Výstup patří do public/targets/house-target.mind.
+Compiler používá offline API MindAR a nativní balíček canvas. Verze
+`canvas@3.2.3` je v projektu vynucená kvůli kompatibilitě s Node.js 24.
+Výstup patří do public/targets/house-target.mind.
 
 ## Vývojové zásady
 

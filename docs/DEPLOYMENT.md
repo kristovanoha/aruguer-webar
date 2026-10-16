@@ -6,10 +6,10 @@ Projekt je standardní Next.js aplikace připravená pro Vercel. Nepoužívá
 vlastní vercel.json, custom server ani dlouho běžící backend. Produkční
 deployment nebyl z tohoto repozitáře proveden.
 
-Vercel musí používat Node.js 20.x; tato verze je vynucena přes `engines` v
-`package.json`. Je to důležité kvůli tranzitivní závislosti
-`mind-ar -> canvas@2.11.2`, pro kterou Node.js 24 může při instalaci spouštět
-nativní kompilaci přes `node-gyp`.
+Vercel používá Node.js 24.x, což je vynuceno přes `engines` v `package.json`.
+MindAR 1.2.5 deklaruje starší `canvas`; npm `overrides` proto vynucuje
+`canvas@3.2.3`, která podporuje Node.js 24 a zabraňuje použití starého
+`canvas@2.11.2` při instalaci.
 
 Build výstup obsahuje mimo jiné route /ar/demo. Veřejný model je dostupný
 z /models/demo-house.glb.
