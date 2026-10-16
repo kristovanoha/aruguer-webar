@@ -60,7 +60,7 @@ export default function Home() {
             </p>
             <div className="mt-10 inline-flex items-center gap-3 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-4 py-2.5 text-sm text-emerald-200">
               <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_12px_3px_rgba(110,231,183,0.35)]" />
-              První verze aplikace je připravena.
+              První verze aplikace je připravena. xxxx
             </div>
           </div>
         </section>
