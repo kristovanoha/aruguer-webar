@@ -10,9 +10,15 @@
 
 ## Lokální spuštění
 
+Projekt používá Node.js 20.x. Verze je uvedena v `package.json` a `.nvmrc`.
+MindAR 1.2.5 má tranzitivní závislost `canvas@2.11.2`; Node.js 24 může při
+instalaci spustit `node-gyp` místo stažení předkompilovaného binárního
+balíčku. Před instalací závislostí proto použijte Node.js 20.
+
 V kořeni projektu:
 
 ~~~bash
+nvm use
 npm ci
 npm run dev
 ~~~
