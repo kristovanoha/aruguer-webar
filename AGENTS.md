@@ -375,6 +375,14 @@ Update documentation when behavior or architecture changes.
 
 Avoid creating documentation files that duplicate existing information.
 
+Before any significant change, Codex must read the relevant documents in
+the docs/ directory and the affected source files. After the change, Codex
+must update the relevant documentation when architecture, behavior,
+dependencies, browser support, deployment, data storage, or operational
+assumptions have changed. Documentation must distinguish implemented
+behavior from planned work and must not describe unimplemented AR modes as
+available.
+
 ## 16. Codex Working Rules
 
 Before implementing a task:
