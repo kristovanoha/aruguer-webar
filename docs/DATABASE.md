@@ -4,7 +4,7 @@
 
 Databáze, Supabase klient, API routes, autentizace ani upload workflow nejsou
 v projektu implementované. Aktuální demo načítá model přímo z veřejného
-statického souboru public/models/demo-house.glb.
+statického souboru public/models/robot.glb.
 
 Neexistují:
 

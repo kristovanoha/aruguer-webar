@@ -3,7 +3,7 @@ import ARModelViewer from "@/features/ar/surface-tracking/ARModelViewer";
 
 export const metadata = {
   title: "AR demo domu – ARuguer Reality",
-  description: "Interaktivní 3D model domu s možností umístění v rozšířené realitě.",
+  description: "Interaktivní 3D model robota s možností umístění v rozšířené realitě.",
 };
 
 export default function ARDemoPage() {
@@ -24,7 +24,7 @@ export default function ARDemoPage() {
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-blue-300">Surface AR</p>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">Prohlédněte si dům ve svém prostoru.</h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
-              Otočte si model domu, prohlédněte si jeho proporce a na podporovaném Android telefonu jej umístěte pomocí kamery.
+              Otočte si model robota, prohlédněte si jeho proporce a na podporovaném Android telefonu jej umístěte pomocí kamery.
             </p>
             <p className="mt-5 text-sm leading-6 text-slate-500">
               Pokud vaše zařízení AR nepodporuje, interaktivní 3D prohlížeč zůstává plně funkční.

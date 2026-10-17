@@ -99,20 +99,20 @@ export default function ARModelViewer() {
         )}
         {modelError && (
           <div className="absolute inset-0 z-10 flex items-center justify-center px-6 text-center text-sm text-red-200">
-            Model se nepodařilo načíst. Zkontrolujte dostupnost souboru demo-house.glb.
+            Model se nepodařilo načíst. Zkontrolujte dostupnost souboru robot.glb.
           </div>
         )}
         {libraryReady && (
           <ModelViewer
             ref={viewerRef}
-            alt="Jednoduchý 3D model domu"
+            alt="Jednoduchý 3D model robota"
             ar
             ar-modes="webxr scene-viewer"
             camera-controls
             className="h-[360px] w-full sm:h-[480px]"
             exposure="1"
             shadow-intensity="1"
-            src="/models/demo-house.glb"
+            src="/models/robot.glb"
             touch-action="pan-y"
           />
         )}

@@ -139,10 +139,10 @@ export default function ImageTrackingDemo() {
       runtimeRef.current = runtime;
 
       const loader = new GLTFLoader();
-      const gltf = await loader.loadAsync("/models/demo-house.glb");
+      const gltf = await loader.loadAsync("/models/robot.glb");
 
-      model.scale.setScalar(0.3);
-      model.position.set(0, -0.3, 0.05);
+      model.scale.setScalar(0.1);
+      model.position.set(0, 0, 0.05);
       model.add(gltf.scene);
       model.traverse((object) => {
         const mesh = object as Object3D & {
