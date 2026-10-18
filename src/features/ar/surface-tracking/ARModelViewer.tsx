@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 
 type ModelViewerProps = React.HTMLAttributes<HTMLElement> & {
   alt: string;
+  autoplay?: boolean;
   ar?: boolean;
   "ar-modes"?: string;
+  "animation-name"?: string;
   "camera-controls"?: boolean;
   exposure?: string;
   poster?: string;
@@ -106,8 +108,10 @@ export default function ARModelViewer() {
           <ModelViewer
             ref={viewerRef}
             alt="3D model netvora"
+            autoplay
             ar
             ar-modes="webxr scene-viewer"
+            animation-name="Running"
             camera-controls
             className="h-[360px] w-full sm:h-[480px]"
             exposure="1"

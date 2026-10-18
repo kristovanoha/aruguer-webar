@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Group, Material, Object3D, WebGLRenderer } from "three";
+import type { AnimationMixer, Clock, Group, Material, Object3D, WebGLRenderer } from "three";
 import type { MindARThree } from "mind-ar/dist/mindar-image-three.prod.js";
 
 type TrackingState = "idle" | "loading" | "running" | "error";
@@ -10,6 +10,8 @@ type TrackingRuntime = {
   mindar: MindARThree;
   model: Object3D;
   renderer: WebGLRenderer;
+  mixer: AnimationMixer | null;
+  clock: Clock | null;
   started: boolean;
 };
 
@@ -89,6 +91,10 @@ export default function ImageTrackingDemo() {
       runtime.mindar.video.srcObject = null;
       runtime.mindar.video.remove();
     }
+    runtime.mixer?.stopAllAction();
+    if (runtime.mixer && runtime.model) {
+      runtime.mixer.uncacheRoot(runtime.model);
+    }
     runtime.renderer.setAnimationLoop(null);
     disposeModel(runtime.model);
     runtime.renderer.dispose();
@@ -134,6 +140,8 @@ export default function ImageTrackingDemo() {
         mindar,
         model,
         renderer: mindar.renderer,
+        mixer: null,
+        clock: null,
         started: false,
       };
       runtimeRef.current = runtime;
@@ -144,6 +152,14 @@ export default function ImageTrackingDemo() {
       model.scale.setScalar(0.1);
       model.position.set(0, 0, 0.05);
       model.add(gltf.scene);
+      if (gltf.animations.length > 0) {
+        const mixer = new three.AnimationMixer(model);
+        const clip =
+          three.AnimationClip.findByName(gltf.animations, "Running") ?? gltf.animations[0];
+        mixer.clipAction(clip).reset().play();
+        runtime.mixer = mixer;
+        runtime.clock = new three.Clock();
+      }
       model.traverse((object) => {
         const mesh = object as Object3D & {
           castShadow?: boolean;
@@ -163,6 +179,7 @@ export default function ImageTrackingDemo() {
       await mindar.start();
       configureSeeThroughLayers(mindar, stageRef.current);
       mindar.renderer.setAnimationLoop(() => {
+        runtime.mixer?.update(runtime.clock?.getDelta() ?? 0);
         mindar.renderer.render(mindar.scene, mindar.camera);
       });
       setState("running");
