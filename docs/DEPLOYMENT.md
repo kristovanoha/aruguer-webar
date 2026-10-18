@@ -11,8 +11,8 @@ MindAR 1.2.5 deklaruje starší `canvas`; npm `overrides` proto vynucuje
 `canvas@3.2.3`, která podporuje Node.js 24 a zabraňuje použití starého
 `canvas@2.11.2` při instalaci.
 
-Build výstup obsahuje mimo jiné route /ar/demo. Veřejný model robota je dostupný
-z /models/robot.glb.
+Build výstup obsahuje mimo jiné route /ar/demo. Veřejný model netvora je dostupný
+z /models/netvorBeh.glb.
 
 ## Vercel workflow
 

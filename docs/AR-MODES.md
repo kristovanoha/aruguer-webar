@@ -4,8 +4,8 @@
 
 | Režim | Stav | Technologie | Aktuální vstup |
 | --- | --- | --- | --- |
-| Surface AR | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/robot.glb |
-| Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + robot.glb |
+| Surface AR | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/netvorBeh.glb |
+| Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + netvorBeh.glb |
 | Location AR | Plánováno | Ověřená location AR technologie | Není |
 | Face Tracking | Plánováno | MindAR nebo jiný ověřený face tracker | Není |
 
@@ -37,7 +37,7 @@ fallbackem, pokud se načtení modelu podaří.
 
 Route /ar/image/demo používá přiložený černobílý obrázek domu jako target.
 Soubor house-target.mind vznikl lokálně pomocí scripts/compile-mind-target.mjs.
-Po spuštění kamery se načte model `robot.glb` do anchoru targetu.
+Po spuštění kamery se načte model `netvorBeh.glb` do anchoru targetu.
 
 Komponenta explicitně zastavuje MindAR, animation loop, camera stream přes
 MindAR stop API, renderer a modelové geometrie/materialy. Při selhání před

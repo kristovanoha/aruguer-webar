@@ -26,7 +26,7 @@ export default function ImageTrackingDemoPage() {
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-blue-300">Image Tracking</p>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">Oživte referenční obrázek domu.</h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
-              Kamera rozpozná přiložený obrazový target a umístí nad něj 3D model robota.
+              Kamera rozpozná přiložený obrazový target a umístí nad něj 3D model netvora.
             </p>
             <div className="mt-7 overflow-hidden rounded-2xl border border-white/10 bg-white p-3">
               {/* The image is also the exact source used to create house-target.mind. */}
@@ -49,7 +49,7 @@ export default function ImageTrackingDemoPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Fallback</p>
               <h2 id="image-fallback-heading" className="mt-2 text-xl font-medium text-white">3D prohlížeč bez kamery</h2>
               <p className="mt-2 mb-4 text-sm leading-6 text-slate-400">
-                Pokud Image Tracking není podporovaný nebo nechcete použít kameru, robota si můžete stále prohlédnout interaktivně.
+                Pokud Image Tracking není podporovaný nebo nechcete použít kameru, netvora si můžete stále prohlédnout interaktivně.
               </p>
               <ARModelViewer />
             </section>

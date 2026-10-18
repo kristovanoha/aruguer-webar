@@ -45,7 +45,7 @@ implementované.
 
 | Cesta | Odpovědnost | Stav |
 | --- | --- | --- |
-| public/models/robot.glb | Lokální GLB model robota pro Surface AR a Image Tracking | Implementováno |
+| public/models/netvorBeh.glb | Lokální GLB model netvora pro Surface AR a Image Tracking | Implementováno |
 | public/targets/house-target.png | Referenční obrázek dodaný uživatelem | Implementováno |
 | public/targets/house-target.mind | Zkompilovaná MindAR data targetu | Implementováno |
 | public/*.svg | Výchozí statické assety z bootstrapu | Implementováno, bez AR odpovědnosti |

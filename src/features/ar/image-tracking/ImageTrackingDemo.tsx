@@ -139,7 +139,7 @@ export default function ImageTrackingDemo() {
       runtimeRef.current = runtime;
 
       const loader = new GLTFLoader();
-      const gltf = await loader.loadAsync("/models/robot.glb");
+      const gltf = await loader.loadAsync("/models/netvorBeh.glb");
 
       model.scale.setScalar(0.1);
       model.position.set(0, 0, 0.05);
@@ -255,7 +255,7 @@ export default function ImageTrackingDemo() {
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm leading-6 text-slate-400">
         <p id="image-tracking-heading" className="font-medium text-slate-200">Jak demo použít</p>
-        <p>Stiskněte spuštění, povolte kameru a namiřte ji na referenční obrázek. Model domu se objeví nad jeho plochou.</p>
+        <p>Stiskněte spuštění, povolte kameru a namiřte ji na referenční obrázek. Model netvora se objeví nad jeho plochou.</p>
       </div>
     </section>
   );

@@ -16,7 +16,7 @@ Tok požadavku:
            src/app/ar/image/demo/page.tsx
           -> UI a client komponenty
             -> @google/model-viewer nebo MindAR + Three.js
-              -> public/models/robot.glb nebo public/targets/house-target.mind
+              -> public/models/netvorBeh.glb nebo public/targets/house-target.mind
               -> WebXR, Android Scene Viewer nebo camera-based image tracking
 
 Odpovědnosti:
@@ -36,7 +36,7 @@ Odpovědnosti:
   loading/error stav a aktivace AR.
 - ImageTrackingDemo: client komponenta s dynamickým načtením MindAR, Three.js
   a GLTFLoader; řídí camera session, anchor a cleanup.
-- robot.glb: uživatelský demonstrační model pro Surface AR a Image Tracking.
+- netvorBeh.glb: uživatelský demonstrační model pro Surface AR a Image Tracking.
 - house-target.png a house-target.mind: přiložený obrázek a jeho MindAR
   feature data.
 

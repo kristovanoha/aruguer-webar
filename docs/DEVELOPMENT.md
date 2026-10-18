@@ -39,7 +39,7 @@ npm run build
 Při změně AR komponenty ověřte také dostupnost modelu:
 
 ~~~bash
-curl -I http://localhost:3000/models/robot.glb
+curl -I http://localhost:3000/models/netvorBeh.glb
 ~~~
 
 Při změně Image Tracking targetu znovu vytvořte .mind soubor:

@@ -59,7 +59,7 @@ export default function ARModelViewer() {
       if (status === "failed") {
         setArMessage("AR se nepodařilo spustit. Zkontrolujte oprávnění kamery a podporu Google Play Services for AR.");
       } else if (status === "object-placed") {
-        setArMessage("Model domu byl umístěn do prostoru.");
+        setArMessage("Model netvora byl umístěn do prostoru.");
       }
     };
 
@@ -99,20 +99,20 @@ export default function ARModelViewer() {
         )}
         {modelError && (
           <div className="absolute inset-0 z-10 flex items-center justify-center px-6 text-center text-sm text-red-200">
-            Model se nepodařilo načíst. Zkontrolujte dostupnost souboru robot.glb.
+            Model se nepodařilo načíst. Zkontrolujte dostupnost souboru netvorBeh.glb.
           </div>
         )}
         {libraryReady && (
           <ModelViewer
             ref={viewerRef}
-            alt="Jednoduchý 3D model robota"
+            alt="3D model netvora"
             ar
             ar-modes="webxr scene-viewer"
             camera-controls
             className="h-[360px] w-full sm:h-[480px]"
             exposure="1"
             shadow-intensity="1"
-            src="/models/robot.glb"
+            src="/models/netvorBeh.glb"
             touch-action="pan-y"
           />
         )}
