@@ -40,14 +40,14 @@ const trackingSmoothingFactor = 0.34;
 const velocitySmoothingFactor = 0.42;
 const maxMissedFrames = 5;
 
-function getCenter(box: Detection) {
+function getCenter(box: Pick<Detection, "x" | "y" | "width" | "height">) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
 function updateTrackedClocks(
   previousTracks: TrackedClock[],
   detections: Detection[],
-  nextId: { value: number },
+  nextId: { current: number },
 ): TrackedClock[] {
   const predictions = previousTracks.map((track) => ({
     track,
@@ -134,7 +134,7 @@ function updateTrackedClocks(
     if (usedDetectionIndexes.has(detectionIndex)) return;
     nextTracks.push({
       ...detection,
-      id: nextId.value++,
+      id: nextId.current++,
       velocityX: 0,
       velocityY: 0,
       velocityWidth: 0,
