@@ -21,6 +21,14 @@ type ModelViewerElement = HTMLElement & {
   activateAR?: () => Promise<void>;
 };
 
+type AnimationName = "Running" | "Walking" | "run_fast_7";
+
+const animationOptions: Array<{ name: AnimationName; label: string; description: string }> = [
+  { name: "Running", label: "Běh", description: "Plynulý běh vpřed." },
+  { name: "Walking", label: "Chůze", description: "Pomalejší a klidnější pohyb." },
+  { name: "run_fast_7", label: "Rychlý běh", description: "Výrazně rychlejší běh." },
+];
+
 const ModelViewer = "model-viewer" as unknown as React.ComponentType<ModelViewerProps>;
 
 export default function ARModelViewer() {
@@ -29,6 +37,7 @@ export default function ARModelViewer() {
   const [modelLoaded, setModelLoaded] = useState(false);
   const [arMessage, setArMessage] = useState<string | null>(null);
   const [modelError, setModelError] = useState(false);
+  const [selectedAnimation, setSelectedAnimation] = useState<AnimationName>("Running");
 
   useEffect(() => {
     let active = true;
@@ -111,7 +120,7 @@ export default function ARModelViewer() {
             autoplay
             ar
             ar-modes="webxr scene-viewer"
-            animation-name="Running"
+            animation-name={selectedAnimation}
             camera-controls
             className="h-[360px] w-full sm:h-[480px]"
             exposure="1"
@@ -120,6 +129,34 @@ export default function ARModelViewer() {
             touch-action="pan-y"
           />
         )}
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+        <div className="mb-3">
+          <p className="font-medium text-slate-200">Vyberte animaci</p>
+          <p className="mt-1 text-sm leading-6 text-slate-400">
+            Kliknutím na tlačítko okamžitě změníte pohyb modelu.
+          </p>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-3" role="group" aria-label="Výběr animace">
+          {animationOptions.map((animation) => (
+            <button
+              key={animation.name}
+              type="button"
+              onClick={() => setSelectedAnimation(animation.name)}
+              disabled={!libraryReady || !modelLoaded || modelError}
+              aria-pressed={selectedAnimation === animation.name}
+              className={
+                selectedAnimation === animation.name
+                  ? "rounded-xl border border-blue-300/70 bg-blue-300/20 px-3 py-2 text-left text-sm text-blue-100"
+                  : "rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-left text-sm text-slate-300 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-50"
+              }
+            >
+              <span className="block font-semibold">{animation.label}</span>
+              <span className="mt-1 block text-xs leading-5 text-slate-400">{animation.description}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <button

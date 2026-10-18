@@ -39,7 +39,8 @@ Route /ar/image/demo používá přiložený černobílý obrázek domu jako tar
 Soubor house-target.mind vznikl lokálně pomocí scripts/compile-mind-target.mjs.
 Po spuštění kamery se načte model `netvorBeh.glb` do anchoru targetu.
 Model obsahuje klipy `Running`, `Walking` a `run_fast_7`; v demu se automaticky
-přehrává klip `Running`.
+přehrává klip `Running`. Pod prohlížečem jsou tlačítka pro přepnutí mezi během,
+chůzí a rychlým během včetně krátkého popisu každé animace.
 
 Komponenta explicitně zastavuje MindAR, animation loop, camera stream přes
 MindAR stop API, renderer a modelové geometrie/materialy. Při selhání před
