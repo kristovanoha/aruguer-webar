@@ -80,9 +80,12 @@ WebGL backend a při jeho selhání přepne na CPU. Z obecné kategorie `clock` 
 vybere pouze detekce s nejvyšším confidence; výchozí minimum je 0,55.
 
 Překryv `public/ar/overlays/clock-overlay.png` se mapuje na video s
-`object-fit: cover`, vyhlazuje se pomocí EMA a po krátké ztrátě detekce zůstává
-dočasně na poslední známé pozici. Kamera i AI model se při zastavení nebo
-opuštění stránky uvolní. Demo neposílá snímky kamery na server.
+`object-fit: cover`. Každá detekovaná hodina dostane vlastní stopu a ID;
+tracker používá přiřazení podle středu a velikosti objektu, EMA vyhlazení,
+predikci rychlosti a toleranci pěti ztracených detekčních cyklů. Díky tomu lze
+sledovat více hodin a překryv zůstává stabilnější při pohybu kamery. Kamera i
+AI model se při zastavení nebo opuštění stránky uvolní. Demo neposílá snímky
+kamery na server.
 
 ## iOS Safari
 

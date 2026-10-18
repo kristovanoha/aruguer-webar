@@ -14,6 +14,15 @@ type Detection = {
   score: number;
 };
 
+type TrackedClock = Detection & {
+  id: number;
+  velocityX: number;
+  velocityY: number;
+  velocityWidth: number;
+  velocityHeight: number;
+  missedFrames: number;
+};
+
 type DetectionModel = {
   detect: (
     input: HTMLVideoElement,
@@ -27,19 +36,114 @@ type Viewport = { width: number; height: number };
 
 const overlayPath = "/ar/overlays/clock-overlay.png";
 const detectionIntervalMs = 200;
-const smoothingFactor = 0.38;
-const lostDetectionGraceMs = 700;
+const trackingSmoothingFactor = 0.34;
+const velocitySmoothingFactor = 0.42;
+const maxMissedFrames = 5;
 
-function smoothDetection(previous: Detection | null, next: Detection): Detection {
-  if (!previous) return next;
+function getCenter(box: Detection) {
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}
 
-  return {
-    x: previous.x + (next.x - previous.x) * smoothingFactor,
-    y: previous.y + (next.y - previous.y) * smoothingFactor,
-    width: previous.width + (next.width - previous.width) * smoothingFactor,
-    height: previous.height + (next.height - previous.height) * smoothingFactor,
-    score: next.score,
-  };
+function updateTrackedClocks(
+  previousTracks: TrackedClock[],
+  detections: Detection[],
+  nextId: { value: number },
+): TrackedClock[] {
+  const predictions = previousTracks.map((track) => ({
+    track,
+    x: track.x + track.velocityX,
+    y: track.y + track.velocityY,
+    width: Math.max(8, track.width + track.velocityWidth),
+    height: Math.max(8, track.height + track.velocityHeight),
+  }));
+  const pairs = predictions.flatMap((prediction) =>
+    detections.map((detection, detectionIndex) => {
+      const predictedCenter = getCenter(prediction);
+      const detectionCenter = getCenter(detection);
+      const distance = Math.hypot(
+        predictedCenter.x - detectionCenter.x,
+        predictedCenter.y - detectionCenter.y,
+      );
+      const trackSize = Math.max(45, Math.hypot(prediction.width, prediction.height) * 0.72);
+      const sizeDifference = Math.abs(
+        Math.log((detection.width * detection.height) / (prediction.width * prediction.height)),
+      );
+
+      return {
+        detection,
+        detectionIndex,
+        prediction,
+        distance,
+        cost: distance + sizeDifference * 24,
+        maxDistance: trackSize,
+      };
+    }),
+  )
+    .filter((pair) => pair.distance <= pair.maxDistance)
+    .sort((a, b) => a.cost - b.cost);
+
+  const usedTrackIds = new Set<number>();
+  const usedDetectionIndexes = new Set<number>();
+  const nextTracks: TrackedClock[] = [];
+
+  for (const pair of pairs) {
+    if (usedTrackIds.has(pair.prediction.track.id) || usedDetectionIndexes.has(pair.detectionIndex)) continue;
+
+    const track = pair.prediction.track;
+    const nextX = pair.prediction.x + (pair.detection.x - pair.prediction.x) * trackingSmoothingFactor;
+    const nextY = pair.prediction.y + (pair.detection.y - pair.prediction.y) * trackingSmoothingFactor;
+    const nextWidth = pair.prediction.width + (pair.detection.width - pair.prediction.width) * trackingSmoothingFactor;
+    const nextHeight = pair.prediction.height + (pair.detection.height - pair.prediction.height) * trackingSmoothingFactor;
+
+    nextTracks.push({
+      ...pair.detection,
+      id: track.id,
+      x: nextX,
+      y: nextY,
+      width: nextWidth,
+      height: nextHeight,
+      velocityX: track.velocityX * (1 - velocitySmoothingFactor) + (nextX - track.x) * velocitySmoothingFactor,
+      velocityY: track.velocityY * (1 - velocitySmoothingFactor) + (nextY - track.y) * velocitySmoothingFactor,
+      velocityWidth: track.velocityWidth * (1 - velocitySmoothingFactor) + (nextWidth - track.width) * velocitySmoothingFactor,
+      velocityHeight: track.velocityHeight * (1 - velocitySmoothingFactor) + (nextHeight - track.height) * velocitySmoothingFactor,
+      missedFrames: 0,
+    });
+    usedTrackIds.add(track.id);
+    usedDetectionIndexes.add(pair.detectionIndex);
+  }
+
+  for (const prediction of predictions) {
+    if (usedTrackIds.has(prediction.track.id) || prediction.track.missedFrames >= maxMissedFrames) continue;
+
+    nextTracks.push({
+      ...prediction.track,
+      x: prediction.x,
+      y: prediction.y,
+      width: prediction.width,
+      height: prediction.height,
+      score: prediction.track.score * 0.98,
+      velocityX: prediction.track.velocityX * 0.86,
+      velocityY: prediction.track.velocityY * 0.86,
+      velocityWidth: prediction.track.velocityWidth * 0.86,
+      velocityHeight: prediction.track.velocityHeight * 0.86,
+      missedFrames: prediction.track.missedFrames + 1,
+    });
+  }
+
+  detections.forEach((detection, detectionIndex) => {
+    if (usedDetectionIndexes.has(detectionIndex)) return;
+    nextTracks.push({
+      ...detection,
+      id: nextId.value++,
+      velocityX: 0,
+      velocityY: 0,
+      velocityWidth: 0,
+      velocityHeight: 0,
+      missedFrames: 0,
+    });
+  });
+
+  return nextTracks.sort((a, b) => a.id - b.id);
 }
 
 function getCoverGeometry(
@@ -84,13 +188,13 @@ export default function ObjectTrackingDemo() {
   const runningRef = useRef(false);
   const sessionRef = useRef(0);
   const confidenceRef = useRef(0.55);
-  const smoothedDetectionRef = useRef<Detection | null>(null);
-  const lostDetectionAtRef = useRef<number | null>(null);
+  const trackedClocksRef = useRef<TrackedClock[]>([]);
+  const nextTrackIdRef = useRef(1);
 
   const [cameraState, setCameraState] = useState<CameraState>("idle");
   const [modelState, setModelState] = useState<ModelState>("idle");
   const [message, setMessage] = useState<string | null>(null);
-  const [detection, setDetection] = useState<Detection | null>(null);
+  const [trackedClocks, setTrackedClocks] = useState<TrackedClock[]>([]);
   const [lastDetectedAt, setLastDetectedAt] = useState<number | null>(null);
   const [overlayEnabled, setOverlayEnabled] = useState(true);
   const [debugEnabled, setDebugEnabled] = useState(false);
@@ -112,9 +216,9 @@ export default function ObjectTrackingDemo() {
     }
     modelRef.current?.dispose?.();
     modelRef.current = null;
-    smoothedDetectionRef.current = null;
-    lostDetectionAtRef.current = null;
-    setDetection(null);
+    trackedClocksRef.current = [];
+    nextTrackIdRef.current = 1;
+    setTrackedClocks([]);
     setLastDetectedAt(null);
     setCameraState("idle");
     setModelState("idle");
@@ -129,31 +233,20 @@ export default function ObjectTrackingDemo() {
 
     inferenceBusyRef.current = true;
     try {
-      const results = await modelRef.current.detect(videoRef.current, 10, confidenceRef.current);
-      const clock = results
+      const results = await modelRef.current.detect(videoRef.current, 20, confidenceRef.current);
+      if (!runningRef.current) return;
+      const clocks = results
         .filter((result) => result.class.toLowerCase() === "clock")
-        .sort((a, b) => b.score - a.score)[0];
-
-      if (clock) {
-        const [x, y, width, height] = clock.bbox;
-        const nextDetection = smoothDetection(smoothedDetectionRef.current, {
-          x,
-          y,
-          width,
-          height,
-          score: clock.score,
+        .map((result) => {
+          const [x, y, width, height] = result.bbox;
+          return { x, y, width, height, score: result.score };
         });
-        smoothedDetectionRef.current = nextDetection;
-        lostDetectionAtRef.current = null;
-        setDetection(nextDetection);
+      const nextTracks = updateTrackedClocks(trackedClocksRef.current, clocks, nextTrackIdRef);
+      trackedClocksRef.current = nextTracks;
+      setTrackedClocks(nextTracks);
+
+      if (clocks.length > 0) {
         setLastDetectedAt(Date.now());
-      } else if (smoothedDetectionRef.current) {
-        const lostAt = lostDetectionAtRef.current ?? Date.now();
-        lostDetectionAtRef.current = lostAt;
-        if (Date.now() - lostAt > lostDetectionGraceMs) {
-          smoothedDetectionRef.current = null;
-          setDetection(null);
-        }
       }
     } catch {
       setMessage("AI detekce se nepodařila dokončit. Zkuste kameru zastavit a spustit znovu.");
@@ -177,7 +270,7 @@ export default function ObjectTrackingDemo() {
     sessionRef.current = sessionId;
     setCameraState("starting");
     setMessage(null);
-    setDetection(null);
+    setTrackedClocks([]);
     setLastDetectedAt(null);
     setModelState("loading");
 
@@ -254,17 +347,22 @@ export default function ObjectTrackingDemo() {
 
   useEffect(() => stopCamera, [stopCamera]);
 
-  const geometry = useMemo(() => {
-    if (!detection || !videoRef.current) return null;
-    return getCoverGeometry(
-      detection,
-      videoRef.current.videoWidth,
-      videoRef.current.videoHeight,
-      viewport,
-      overlayAspectRatio,
-      scaleFactor,
-    );
-  }, [detection, overlayAspectRatio, scaleFactor, viewport]);
+  const trackGeometries = useMemo(() => {
+    if (!videoRef.current) return [];
+    return trackedClocks
+      .map((clock) => ({
+        clock,
+        geometry: getCoverGeometry(
+          clock,
+          videoRef.current?.videoWidth ?? 0,
+          videoRef.current?.videoHeight ?? 0,
+          viewport,
+          overlayAspectRatio,
+          scaleFactor,
+        ),
+      }))
+      .filter((item): item is { clock: TrackedClock; geometry: NonNullable<ReturnType<typeof getCoverGeometry>> } => item.geometry !== null);
+  }, [overlayAspectRatio, scaleFactor, trackedClocks, viewport]);
 
   const modelLabel =
     modelState === "loading" ? "Načítám AI model…" : modelState === "ready" ? "AI model připraven" : "AI model není spuštěn";
@@ -284,8 +382,9 @@ export default function ObjectTrackingDemo() {
           playsInline
           aria-label="Živý obraz zadní kamery"
         />
-        {overlayEnabled && geometry && detection && (
+        {overlayEnabled && trackGeometries.map(({ clock, geometry }) => (
           <Image
+            key={`overlay-${clock.id}`}
             src={overlayPath}
             alt="Překryv hodin"
             width={320}
@@ -294,17 +393,18 @@ export default function ObjectTrackingDemo() {
             className="pointer-events-none absolute max-w-none object-contain"
             style={{ left: geometry.left, top: geometry.top, width: geometry.width, height: geometry.height }}
           />
-        )}
-        {debugEnabled && geometry && (
+        ))}
+        {debugEnabled && trackGeometries.map(({ clock, geometry }) => (
           <div
+            key={`debug-${clock.id}`}
             className="pointer-events-none absolute border-2 border-amber-300"
             style={{ left: geometry.boxLeft, top: geometry.boxTop, width: geometry.boxWidth, height: geometry.boxHeight }}
           >
             <span className="absolute left-0 top-0 -translate-y-full bg-amber-300 px-1.5 py-0.5 text-[11px] font-semibold text-slate-950">
-              {Math.round((detection?.score ?? 0) * 100)} %
+              #{clock.id} · {Math.round(clock.score * 100)} %
             </span>
           </div>
-        )}
+        ))}
         {cameraState !== "running" && (
           <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80 px-6 text-center text-sm text-slate-300">
             {cameraState === "error" ? message : "Spusťte kameru a namiřte ji na nástěnné hodiny."}
@@ -383,7 +483,7 @@ export default function ObjectTrackingDemo() {
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm leading-6 text-slate-400">
         <p id="object-tracking-heading" className="font-medium text-slate-200">AI Object Tracking</p>
-        <p>Detekce probíhá přímo v zařízení. Překryv se zobrazí pouze při rozpoznání hodin s confidence alespoň {minConfidence.toFixed(2)}.</p>
+        <p>Detekce probíhá přímo v zařízení. Aktivních hodin: {trackedClocks.length}. Překryv se zobrazí pouze při confidence alespoň {minConfidence.toFixed(2)}.</p>
         <p className="mt-1">Poslední detekce: {lastDetectedAt ? new Date(lastDetectedAt).toLocaleTimeString("cs-CZ") : "zatím žádná"}.</p>
       </div>
 
