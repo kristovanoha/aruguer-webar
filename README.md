@@ -37,6 +37,10 @@ Ukázka Surface AR je dostupná na `/ar/demo`. Obsahuje lokální GLB model netv
 Image Tracking demonstrace je dostupná na `/ar/image/demo`. Používá přiložený
 target obrázek a zkompilovaný soubor `public/targets/house-target.mind`.
 
+AI Object Tracking demonstrace je dostupná na `/ar/object-tracking/demo`.
+Kamera a COCO-SSD běží lokálně v prohlížeči a při detekci hodin vykreslí
+obrázek z `public/ar/overlays/clock-overlay.png`.
+
 Skutečné umístění modelu je nutné ověřit na fyzickém Android telefonu s Android Chrome a podporou Google Play Services for AR. Na nepodporovaných zařízeních zůstává funkční 3D prohlížeč.
 
 ## Nasazení na Vercel

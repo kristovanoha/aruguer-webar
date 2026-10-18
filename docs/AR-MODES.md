@@ -6,6 +6,7 @@
 | --- | --- | --- | --- |
 | Surface AR | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/netvorBeh.glb |
 | Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + netvorBeh.glb |
+| AI Object Tracking | Implementováno jako demo | TensorFlow.js 4.22.0 + COCO-SSD 2.2.3 | public/ar/overlays/clock-overlay.png |
 | Location AR | Plánováno | Ověřená location AR technologie | Není |
 | Face Tracking | Plánováno | MindAR nebo jiný ověřený face tracker | Není |
 
@@ -70,6 +71,18 @@ Android Chrome je současný primární cíl. Funkce závisí na:
 
 Podpora musí být ověřena na fyzických telefonech. Desktopový build ani
 emulátor nepotvrzuje správné umístění modelu.
+
+## AI Object Tracking demo
+
+Route `/ar/object-tracking/demo` načítá TensorFlow.js a COCO-SSD až po kliknutí
+na spuštění kamery. Detekce běží lokálně v prohlížeči, nejprve se pokusí použít
+WebGL backend a při jeho selhání přepne na CPU. Z obecné kategorie `clock` se
+vybere pouze detekce s nejvyšším confidence; výchozí minimum je 0,55.
+
+Překryv `public/ar/overlays/clock-overlay.png` se mapuje na video s
+`object-fit: cover`, vyhlazuje se pomocí EMA a po krátké ztrátě detekce zůstává
+dočasně na poslední známé pozici. Kamera i AI model se při zastavení nebo
+opuštění stránky uvolní. Demo neposílá snímky kamery na server.
 
 ## iOS Safari
 

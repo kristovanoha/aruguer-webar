@@ -76,6 +76,12 @@ export default function Home() {
             >
               Image Tracking demo <span className="ml-2" aria-hidden="true">→</span>
             </Link>
+            <Link
+              href="/ar/object-tracking/demo"
+              className="ml-2 mt-5 inline-flex items-center rounded-full border border-emerald-300/30 bg-emerald-300/10 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:border-emerald-200/60 hover:bg-emerald-300/20"
+            >
+              AI Object Tracking demo <span className="ml-2" aria-hidden="true">→</span>
+            </Link>
           </div>
         </section>
 

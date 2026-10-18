@@ -26,6 +26,10 @@ npm run dev
 Vývojový server je na http://localhost:3000. AR demonstrace je na
 http://localhost:3000/ar/demo.
 
+AI Object Tracking demo je na
+http://localhost:3000/ar/object-tracking/demo. Pro kameru použijte HTTPS nebo
+localhost a ověřte ho na fyzickém telefonu.
+
 ## Kontrola změn
 
 Před předáním změny spusťte:

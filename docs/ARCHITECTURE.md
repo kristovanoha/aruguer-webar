@@ -12,8 +12,9 @@ Tok požadavku:
 
     Browser
       -> Next.js App Router
-        -> src/app/page.tsx, src/app/ar/demo/page.tsx nebo
-           src/app/ar/image/demo/page.tsx
+        -> src/app/page.tsx, src/app/ar/demo/page.tsx,
+           src/app/ar/image/demo/page.tsx nebo
+           src/app/ar/object-tracking/demo/page.tsx
           -> UI a client komponenty
             -> @google/model-viewer nebo MindAR + Three.js
               -> public/models/netvorBeh.glb nebo public/targets/house-target.mind
@@ -36,6 +37,8 @@ Odpovědnosti:
   loading/error stav a aktivace AR.
 - ImageTrackingDemo: client komponenta s dynamickým načtením MindAR, Three.js
   a GLTFLoader; řídí camera session, anchor a cleanup.
+- ObjectTrackingDemo: client komponenta s dynamickým načtením TensorFlow.js a
+  COCO-SSD; řídí kameru, lokální detekci hodin, EMA stabilizaci, překryv a cleanup.
 - netvorBeh.glb: uživatelský demonstrační model pro Surface AR a Image Tracking.
 - house-target.png a house-target.mind: přiložený obrázek a jeho MindAR
   feature data.

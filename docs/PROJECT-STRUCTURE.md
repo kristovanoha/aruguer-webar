@@ -40,12 +40,14 @@ implementované.
 | src/features/ar/surface-tracking/ARModelViewer.tsx | Client-only 3D viewer a AR aktivace | Implementováno |
 | src/features/ar/image-tracking/ImageTrackingDemo.tsx | Client-only MindAR lifecycle a anchor | Implementováno |
 | src/features/ar/image-tracking/mind-ar.d.ts | TypeScript kontrakt pro MindAR runtime | Implementováno |
+| src/features/ar/object-tracking/ObjectTrackingDemo.tsx | Client-only AI detekce hodin, kamera a image overlay | Implementováno jako demo |
 
 ## Assety
 
 | Cesta | Odpovědnost | Stav |
 | --- | --- | --- |
 | public/models/netvorBeh.glb | Lokální GLB model netvora pro Surface AR a Image Tracking | Implementováno |
+| public/ar/overlays/clock-overlay.png | Dočasný image overlay pro AI Object Tracking | Implementováno jako placeholder |
 | public/targets/house-target.png | Referenční obrázek dodaný uživatelem | Implementováno |
 | public/targets/house-target.mind | Zkompilovaná MindAR data targetu | Implementováno |
 | public/*.svg | Výchozí statické assety z bootstrapu | Implementováno, bez AR odpovědnosti |
