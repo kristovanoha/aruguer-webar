@@ -24,6 +24,7 @@ Verze odpovídají package.json a package-lock.json:
 - ESLint 9 a eslint-config-next 16.4.2.
 - @google/model-viewer 3.4.0 pro 3D viewer a Surface AR; verze je sladěná s
   Three.js 0.160.0 kvůli kompatibilitě s MindAR 1.2.5.
+- @mediapipe/tasks-vision 0.10.35 (Apache-2.0) pro lokální Object Detector.
 
 Další AR frameworky a Supabase SDK nejsou v současných závislostech
 implementované.

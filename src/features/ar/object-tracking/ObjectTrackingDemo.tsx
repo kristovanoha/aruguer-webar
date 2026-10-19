@@ -12,6 +12,8 @@ type Detection = {
   width: number;
   height: number;
   score: number;
+  category: string;
+  detectedAt: number;
 };
 
 type TrackedClock = Detection & {
@@ -24,12 +26,8 @@ type TrackedClock = Detection & {
 };
 
 type DetectionModel = {
-  detect: (
-    input: HTMLVideoElement,
-    maxNumBoxes?: number,
-    minScore?: number,
-  ) => Promise<Array<{ class: string; score: number; bbox: [number, number, number, number] }>>;
-  dispose?: () => void;
+  detect: (input: HTMLVideoElement, timestamp: number) => Detection[];
+  close: () => void;
 };
 
 type Viewport = { width: number; height: number };
@@ -39,6 +37,9 @@ const detectionIntervalMs = 200;
 const trackingSmoothingFactor = 0.34;
 const velocitySmoothingFactor = 0.42;
 const maxMissedFrames = 5;
+const mediaPipeWasmPath = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
+const efficientDetLite0ModelPath =
+  "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite";
 
 function getCenter(box: Pick<Detection, "x" | "y" | "width" | "height">) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
@@ -187,6 +188,8 @@ export default function ObjectTrackingDemo() {
   const inferenceBusyRef = useRef(false);
   const runningRef = useRef(false);
   const sessionRef = useRef(0);
+  const lastVideoTimeRef = useRef(-1);
+  const lastInferenceTimestampRef = useRef(-1);
   const confidenceRef = useRef(0.55);
   const trackedClocksRef = useRef<TrackedClock[]>([]);
   const nextTrackIdRef = useRef(1);
@@ -214,8 +217,11 @@ export default function ObjectTrackingDemo() {
       videoRef.current.pause();
       videoRef.current.srcObject = null;
     }
-    modelRef.current?.dispose?.();
+    modelRef.current?.close();
     modelRef.current = null;
+    inferenceBusyRef.current = false;
+    lastVideoTimeRef.current = -1;
+    lastInferenceTimestampRef.current = -1;
     trackedClocksRef.current = [];
     nextTrackIdRef.current = 1;
     setTrackedClocks([]);
@@ -233,14 +239,18 @@ export default function ObjectTrackingDemo() {
 
     inferenceBusyRef.current = true;
     try {
-      const results = await modelRef.current.detect(videoRef.current, 20, confidenceRef.current);
+      const videoTime = videoRef.current.currentTime;
+      if (videoTime === lastVideoTimeRef.current) return;
+
+      const timestamp = Math.max(videoTime * 1000, lastInferenceTimestampRef.current + 0.01);
+      const results = modelRef.current.detect(videoRef.current, timestamp);
+      lastVideoTimeRef.current = videoTime;
+      lastInferenceTimestampRef.current = timestamp;
       if (!runningRef.current) return;
       const clocks = results
-        .filter((result) => result.class.toLowerCase() === "clock")
-        .map((result) => {
-          const [x, y, width, height] = result.bbox;
-          return { x, y, width, height, score: result.score };
-        });
+        .filter((result) => result.category.toLowerCase() === "clock" && result.score >= confidenceRef.current)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 1);
       const nextTracks = updateTrackedClocks(trackedClocksRef.current, clocks, nextTrackIdRef);
       trackedClocksRef.current = nextTracks;
       setTrackedClocks(nextTracks);
@@ -275,21 +285,43 @@ export default function ObjectTrackingDemo() {
     setModelState("loading");
 
     try {
-      const [tf, cocoSsd] = await Promise.all([
-        import("@tensorflow/tfjs"),
-        import("@tensorflow-models/coco-ssd"),
-      ]);
-
+      const { FilesetResolver, ObjectDetector } = await import("@mediapipe/tasks-vision");
+      const vision = await FilesetResolver.forVisionTasks(mediaPipeWasmPath);
+      const createDetector = (delegate: "GPU" | "CPU") =>
+        ObjectDetector.createFromOptions(vision, {
+          baseOptions: { delegate, modelAssetPath: efficientDetLite0ModelPath },
+          categoryAllowlist: ["clock"],
+          maxResults: 20,
+          runningMode: "VIDEO",
+          scoreThreshold: 0.3,
+        });
+      let detector: Awaited<ReturnType<typeof ObjectDetector.createFromOptions>>;
       try {
-        await tf.setBackend("webgl");
+        detector = await createDetector("GPU");
       } catch {
-        await tf.setBackend("cpu");
+        detector = await createDetector("CPU");
       }
-      await tf.ready();
-      const model = await cocoSsd.load({ base: "lite_mobilenet_v2" });
+      const model: DetectionModel = {
+        detect: (input, timestamp) =>
+          detector.detectForVideo(input, timestamp).detections.flatMap((detection) => {
+            const category = detection.categories[0];
+            const box = detection.boundingBox;
+            if (!category || !box) return [];
+            return [{
+              x: box.originX,
+              y: box.originY,
+              width: box.width,
+              height: box.height,
+              score: category.score,
+              category: category.categoryName,
+              detectedAt: timestamp,
+            }];
+          }),
+        close: () => detector.close(),
+      };
 
       if (sessionRef.current !== sessionId) {
-        model.dispose?.();
+        model.close();
         return;
       }
       modelRef.current = model;

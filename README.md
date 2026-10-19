@@ -38,7 +38,8 @@ Image Tracking demonstrace je dostupná na `/ar/image/demo`. Používá přilož
 target obrázek a zkompilovaný soubor `public/targets/house-target.mind`.
 
 AI Object Tracking demonstrace je dostupná na `/ar/object-tracking/demo`.
-Kamera a COCO-SSD běží lokálně v prohlížeči a při detekci hodin vykreslí
+Kamera a Google MediaPipe Object Detector s modelem EfficientDet-Lite0 běží
+lokálně v prohlížeči a při detekci hodin vykreslí
 obrázek z `public/ar/overlays/clock-overlay.png`.
 
 Skutečné umístění modelu je nutné ověřit na fyzickém Android telefonu s Android Chrome a podporou Google Play Services for AR. Na nepodporovaných zařízeních zůstává funkční 3D prohlížeč.

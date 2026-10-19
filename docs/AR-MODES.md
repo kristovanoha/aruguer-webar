@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | Surface AR | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/netvorBeh.glb |
 | Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + netvorBeh.glb |
-| AI Object Tracking | Implementováno jako demo | TensorFlow.js 4.22.0 + COCO-SSD 2.2.3 | public/ar/overlays/clock-overlay.png |
+| AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite0 int8 v1 | public/ar/overlays/clock-overlay.png |
 | Location AR | Plánováno | Ověřená location AR technologie | Není |
 | Face Tracking | Plánováno | MindAR nebo jiný ověřený face tracker | Není |
 
@@ -74,18 +74,27 @@ emulátor nepotvrzuje správné umístění modelu.
 
 ## AI Object Tracking demo
 
-Route `/ar/object-tracking/demo` načítá TensorFlow.js a COCO-SSD až po kliknutí
-na spuštění kamery. Detekce běží lokálně v prohlížeči, nejprve se pokusí použít
-WebGL backend a při jeho selhání přepne na CPU. Z obecné kategorie `clock` se
-vybere pouze detekce s nejvyšším confidence; výchozí minimum je 0,55.
+Route `/ar/object-tracking/demo` načítá Google MediaPipe Tasks Vision a
+Object Detector až po kliknutí na spuštění kamery. Detekce běží lokálně v
+prohlížeči s verzovaným modelem EfficientDet-Lite0 (int8, verze 1), který má
+COCO kategorii `clock`. Detektor běží v režimu `VIDEO`, pro každý nový snímek
+předává monotónní timestamp a při nefunkčním GPU delegate přepne na CPU.
+Z kategorie `clock` se vybere pouze detekce s nejvyšším confidence; výchozí
+minimum je 0,55.
 
-Překryv `public/ar/overlays/clock-overlay.png` se mapuje na video s
-`object-fit: cover`. Každá detekovaná hodina dostane vlastní stopu a ID;
-tracker používá přiřazení podle středu a velikosti objektu, EMA vyhlazení,
-predikci rychlosti a toleranci pěti ztracených detekčních cyklů. Díky tomu lze
-sledovat více hodin a překryv zůstává stabilnější při pohybu kamery. Kamera i
+WASM runtime i model se při startu stahují z pevných, verzovaných veřejných URL;
+binární model se proto nereplikuje do repozitáře. Překryv
+`public/ar/overlays/clock-overlay.png` se mapuje na video s
+`object-fit: cover`. Nejlépe hodnocená detekovaná hodina dostane stopu a ID;
+tracker používá EMA vyhlazení, predikci rychlosti a toleranci pěti ztracených
+detekčních cyklů, takže překryv zůstává stabilnější při pohybu kamery. Kamera i
 AI model se při zastavení nebo opuštění stránky uvolní. Demo neposílá snímky
 kamery na server.
+
+Kompatibilita tohoto konkrétního MediaPipe přechodu na Android Chrome a iOS
+Safari zatím nebyla ověřena na fyzickém zařízení. Před nasazením je nutné na
+obou cílových prohlížečích otestovat načtení WASM a modelu, oprávnění kamery,
+detekci hodin, GPU i CPU fallback a opakované zastavení/spuštění kamery.
 
 ## iOS Safari
 
