@@ -45,7 +45,7 @@ implementované.
 | src/features/ar/image-tracking/mind-ar.d.ts | TypeScript kontrakt pro MindAR runtime | Implementováno |
 | src/features/ar/object-tracking/ObjectTrackingDemo.tsx | Client-only AI detekce hodin, kamera a image overlay | Implementováno jako demo |
 | src/features/ar/surface-tracking/SpaceshipARDemo.tsx | Client-only @google/model-viewer 3D náhled a aktivace AR vesmírné lodi | Implementováno jako demo |
-| src/features/ar/location-tracking/SkyARDemo.tsx | Client-only kamera, orientační senzory a více lodí ve Sky AR overlay | Implementováno jako experiment |
+| src/features/ar/location-tracking/SkyARDemo.tsx | Client-only kamera, relativní orientace s kalibrací, Screen AR fallback a více lodí | Implementováno jako experiment |
 
 ## Assety
 

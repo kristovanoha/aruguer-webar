@@ -93,10 +93,12 @@ detaily beze změny.
 
 Route `/ar/sky` dynamicky načte zadní kameru, Device Orientation API a jediný
 GLB model, jehož čtyři kopie sdílejí geometrii i materiály. Transparentní
-Three.js canvas je vrstva nad kamerou. Lodě reagují na orientaci telefonu,
-nejde však o hit-test, geolokační AR ani persistentní anchor. Kompas a kamera
-vyžadují HTTPS/localhost a povolení uživatele; iOS může vyžadovat explicitní
-souhlas s orientačními senzory.
+Three.js canvas je vrstva nad kamerou. Po kalibraci používá relativní změnu
+orientace telefonu, proto nevyžaduje absolutní kompas ani sever. Pokud uživatel
+senzory nepovolí nebo je prohlížeč neposkytne, demo pokračuje v režimu Screen
+AR bez ukotvení při pohybu telefonu. Nejde o hit-test, geolokační AR ani
+persistentní anchor. Kamera vyžaduje HTTPS/localhost; iOS může vyžadovat
+explicitní souhlas s orientačními senzory.
 
 ## AI Object Tracking demo
 

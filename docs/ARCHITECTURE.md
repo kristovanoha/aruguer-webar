@@ -36,8 +36,9 @@ Odpovědnosti:
 - Route /ar/demo: demonstrace Surface AR.
 - Route /ar/image/demo: demonstrace Image Tracking s referenčním obrázkem.
 - Route /ar/spaceship: samostatné AR demo vesmírné lodi přes @google/model-viewer.
-- Route /ar/sky: experimentální camera overlay s orientačními senzory a více
-  instancemi stejného modelu.
+- Route /ar/sky: experimentální camera overlay s relativní orientací po
+  kalibraci a více instancemi stejného modelu; funguje i jako Screen AR bez
+  senzorů.
 - ARModelViewer: client komponenta, dynamické načtení knihovny, viewer,
   loading/error stav a aktivace AR.
 - ImageTrackingDemo: client komponenta s dynamickým načtením MindAR, Three.js
@@ -48,7 +49,8 @@ Odpovědnosti:
 - SpaceshipARDemo: client komponenta s dynamickým načtením @google/model-viewer;
   používá stejný WebXR/Scene Viewer mechanismus jako ARModelViewer.
 - SkyARDemo: client komponenta s dynamickým načtením Three.js a GLTFLoaderu;
-  vlastní camera stream, orientační listener, transparentní renderer a cleanup.
+  vlastní camera stream, relativní orientační listener, Screen AR fallback,
+  transparentní renderer a cleanup.
 - netvorBeh.glb: uživatelský demonstrační model pro Surface AR a Image Tracking.
 - vesmirnaLod.glb: uživatelský demonstrační model pro Spaceship AR demo.
 - house-target.png a house-target.mind: přiložený obrázek a jeho MindAR

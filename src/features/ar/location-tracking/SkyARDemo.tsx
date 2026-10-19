@@ -1,6 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Material, Object3D } from "three";
+/* The initial Sky AR prototype is retained below as disabled source history.
+ * The implementation after it uses calibrated relative orientation instead. */
+/*
 import type { Material, Object3D, WebGLRenderer } from "three";
 
 type SkyState = "idle" | "loading" | "running" | "error";
@@ -27,7 +31,308 @@ function disposeModel(model: Object3D) {
     materials.forEach((material) => material.dispose());
   });
 }
+*/
 
+type SkyState = "idle" | "loading" | "running" | "error";
+type SensorPermission = "not-requested" | "granted" | "denied" | "unsupported";
+type TrackingMethod = "relative-sensors" | "screen-fallback";
+
+type ShipConfiguration = {
+  id: string;
+  azimuth: number;
+  elevation: number;
+  distance: number;
+  scale: number;
+  rotationSpeed: number;
+  hoverAmplitude: number;
+  hoverSpeed: number;
+};
+
+type Runtime = {
+  stop: () => void;
+  calibrate: () => void;
+};
+
+const SHIP_MODEL = "/models/vesmirnaLod.glb";
+
+// Angles are relative to the direction in which the user calibrates the scene.
+const SHIPS: ShipConfiguration[] = [
+  { id: "front", azimuth: 0, elevation: 30, distance: 15, scale: 1, rotationSpeed: 0.06, hoverAmplitude: 0.12, hoverSpeed: 0.8 },
+  { id: "right", azimuth: 60, elevation: 45, distance: 20, scale: 0.72, rotationSpeed: -0.04, hoverAmplitude: 0.09, hoverSpeed: 1.1 },
+  { id: "left", azimuth: -75, elevation: 25, distance: 17, scale: 0.82, rotationSpeed: 0.05, hoverAmplitude: 0.1, hoverSpeed: 0.7 },
+  { id: "back", azimuth: 140, elevation: 50, distance: 24, scale: 0.62, rotationSpeed: -0.03, hoverAmplitude: 0.08, hoverSpeed: 0.9 },
+];
+
+function disposeObject(object: Object3D) {
+  const materials = new Set<{ dispose?: () => void }>();
+  object.traverse((child) => {
+    const mesh = child as Object3D & { geometry?: { dispose: () => void }; material?: Material | Material[] };
+    mesh.geometry?.dispose();
+    const material = mesh.material;
+    if (Array.isArray(material)) material.forEach((item) => materials.add(item));
+    else if (material) materials.add(material);
+  });
+  materials.forEach((material) => material.dispose?.());
+}
+
+export function SkyARDemo() {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const runtimeRef = useRef<Runtime | null>(null);
+  const [state, setState] = useState<SkyState>("idle");
+  const [message, setMessage] = useState("Spusťte Sky AR a namiřte kameru na oblohu.");
+  const [sensorPermission, setSensorPermission] = useState<SensorPermission>("not-requested");
+  const [trackingMethod, setTrackingMethod] = useState<TrackingMethod>("screen-fallback");
+  const [debugEnabled, setDebugEnabled] = useState(false);
+  const [debug, setDebug] = useState("Senzory zatím nejsou načtené.");
+  const debugEnabledRef = useRef(debugEnabled);
+
+  useEffect(() => {
+    debugEnabledRef.current = debugEnabled;
+  }, [debugEnabled]);
+
+  const requestSensors = useCallback(async (): Promise<SensorPermission> => {
+    if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) {
+      setSensorPermission("unsupported");
+      return "unsupported";
+    }
+
+    type PermissionEvent = typeof DeviceOrientationEvent & { requestPermission?: () => Promise<"granted" | "denied"> };
+    const orientationEvent = window.DeviceOrientationEvent as PermissionEvent;
+    if (!orientationEvent.requestPermission) {
+      setSensorPermission("granted");
+      return "granted";
+    }
+
+    try {
+      const result = await orientationEvent.requestPermission();
+      const permission = result === "granted" ? "granted" : "denied";
+      setSensorPermission(permission);
+      return permission;
+    } catch {
+      setSensorPermission("denied");
+      return "denied";
+    }
+  }, []);
+
+  const stop = useCallback(() => {
+    runtimeRef.current?.stop();
+    runtimeRef.current = null;
+    setState("idle");
+    setTrackingMethod("screen-fallback");
+    setMessage("Kamera je zastavená.");
+  }, []);
+
+  const start = useCallback(async () => {
+    if (!stageRef.current || state === "loading" || state === "running") return;
+    setState("loading");
+    setMessage("Připravuji kameru a lodě…");
+
+    let stream: MediaStream | null = null;
+    try {
+      const permission = await requestSensors();
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      const activeStream = stream;
+      const [THREE, { GLTFLoader }] = await Promise.all([import("three"), import("three/examples/jsm/loaders/GLTFLoader.js")]);
+      if (!stageRef.current) throw new Error("Sky AR view was removed.");
+
+      const stage = stageRef.current;
+      stage.replaceChildren();
+      const video = document.createElement("video");
+      video.autoplay = true;
+      video.muted = true;
+      video.playsInline = true;
+      video.srcObject = stream;
+      video.className = "absolute inset-0 h-full w-full object-cover";
+      stage.append(video);
+      await video.play();
+
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      renderer.domElement.className = "absolute inset-0 h-full w-full";
+      stage.append(renderer.domElement);
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 100);
+      scene.add(new THREE.HemisphereLight(0xb7dcff, 0x182436, 2.5));
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 2.2);
+      directionalLight.position.set(3, 8, 5);
+      scene.add(directionalLight);
+
+      const resize = () => {
+        const { clientWidth: width, clientHeight: height } = stage;
+        renderer.setSize(width, height, false);
+        camera.aspect = width / Math.max(height, 1);
+        camera.updateProjectionMatrix();
+      };
+      resize();
+      const resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(stage);
+
+      const gltf = await new GLTFLoader().loadAsync(SHIP_MODEL);
+      const bounds = new THREE.Box3().setFromObject(gltf.scene);
+      const size = bounds.getSize(new THREE.Vector3());
+      const maxDimension = Math.max(size.x, size.y, size.z, 0.001);
+      gltf.scene.scale.setScalar(4 / maxDimension);
+      const normalizedBounds = new THREE.Box3().setFromObject(gltf.scene);
+      const center = normalizedBounds.getCenter(new THREE.Vector3());
+      gltf.scene.position.sub(center);
+
+      const shipEntries = SHIPS.map((config) => {
+        const anchor = new THREE.Group();
+        const visual = gltf.scene.clone(true);
+        visual.scale.multiplyScalar(config.scale);
+        anchor.add(visual);
+        scene.add(anchor);
+        return { config, anchor, visual };
+      });
+
+      const latestOrientation = new THREE.Quaternion();
+      const referenceOrientation = new THREE.Quaternion();
+      let hasOrientation = false;
+      let hasReference = false;
+      let orientationAbsolute = false;
+      let lastAlpha: number | null = null;
+      let lastBeta: number | null = null;
+      let lastGamma: number | null = null;
+      let lastDebugUpdate = 0;
+      const screenAdjustment = new THREE.Quaternion();
+      const deviceAdjustment = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+      const relativeOrientation = new THREE.Quaternion();
+
+      const updateOrientation = (event: DeviceOrientationEvent) => {
+        if (event.alpha === null || event.beta === null || event.gamma === null) return;
+        const screenAngle = window.screen.orientation?.angle ?? 0;
+        screenAdjustment.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -THREE.MathUtils.degToRad(screenAngle));
+        latestOrientation
+          .setFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(event.beta), THREE.MathUtils.degToRad(event.alpha), -THREE.MathUtils.degToRad(event.gamma), "YXZ"))
+          .multiply(deviceAdjustment)
+          .multiply(screenAdjustment);
+        hasOrientation = true;
+        orientationAbsolute = event.absolute === true;
+        lastAlpha = event.alpha;
+        lastBeta = event.beta;
+        lastGamma = event.gamma;
+        if (!hasReference) {
+          referenceOrientation.copy(latestOrientation);
+          hasReference = true;
+        }
+      };
+
+      if (permission === "granted") window.addEventListener("deviceorientation", updateOrientation, true);
+
+      const placeShips = () => {
+        shipEntries.forEach(({ config, anchor }) => {
+          const azimuth = THREE.MathUtils.degToRad(config.azimuth);
+          const elevation = THREE.MathUtils.degToRad(config.elevation);
+          anchor.position.set(
+            Math.sin(azimuth) * Math.cos(elevation) * config.distance,
+            Math.sin(elevation) * config.distance,
+            -Math.cos(azimuth) * Math.cos(elevation) * config.distance,
+          );
+        });
+      };
+      const calibrate = () => {
+        if (hasOrientation) {
+          referenceOrientation.copy(latestOrientation);
+          hasReference = true;
+          setTrackingMethod("relative-sensors");
+          setMessage("Směr je znovu kalibrovaný. Lodě zůstávají ve světě relativně k tomuto směru.");
+        } else {
+          setTrackingMethod("screen-fallback");
+          setMessage("Senzory nejsou dostupné. Běží Screen AR: lodě nejsou ukotvené ve skutečném prostoru.");
+        }
+        placeShips();
+      };
+      placeShips();
+
+      let frame = 0;
+      let stopped = false;
+      let reportedRelativeTracking = false;
+      const render = (now: number) => {
+        if (stopped) return;
+        if (hasReference && hasOrientation) {
+          relativeOrientation.copy(referenceOrientation).invert().multiply(latestOrientation);
+          camera.quaternion.copy(relativeOrientation);
+          if (!reportedRelativeTracking) {
+            reportedRelativeTracking = true;
+            setTrackingMethod("relative-sensors");
+          }
+        }
+        const seconds = now / 1000;
+        shipEntries.forEach(({ config, visual }) => {
+          visual.position.y = Math.sin(seconds * config.hoverSpeed + config.azimuth) * config.hoverAmplitude;
+          visual.rotation.y = seconds * config.rotationSpeed;
+        });
+        if (debugEnabledRef.current && now - lastDebugUpdate > 250) {
+          lastDebugUpdate = now;
+          setDebug(`orientace: ${hasOrientation ? "ano" : "ne"} · absolutní kompas: ${orientationAbsolute ? "ano" : "ne"} · α ${lastAlpha?.toFixed(1) ?? "–"}° · β ${lastBeta?.toFixed(1) ?? "–"}° · γ ${lastGamma?.toFixed(1) ?? "–"}°`);
+        }
+        renderer.render(scene, camera);
+        frame = window.requestAnimationFrame(render);
+      };
+      frame = window.requestAnimationFrame(render);
+      const timeout = window.setTimeout(() => {
+        if (!hasOrientation) {
+          setTrackingMethod("screen-fallback");
+          setMessage("Sky AR běží bez senzorů jako Screen AR. Lodě jsou viditelné, ale nejsou ukotvené při pohybu telefonu.");
+        } else calibrate();
+      }, 900);
+
+      runtimeRef.current = {
+        calibrate,
+        stop: () => {
+          stopped = true;
+          window.cancelAnimationFrame(frame);
+          window.clearTimeout(timeout);
+          window.removeEventListener("deviceorientation", updateOrientation, true);
+          resizeObserver.disconnect();
+          activeStream.getTracks().forEach((track) => track.stop());
+          video.pause();
+          video.srcObject = null;
+          disposeObject(gltf.scene);
+          renderer.dispose();
+          renderer.forceContextLoss();
+          stage.replaceChildren();
+        },
+      };
+      stream = null;
+      setState("running");
+      setMessage(permission === "granted" ? "Kalibruji relativní směr…" : "Sky AR běží bez kompasu jako Screen AR.");
+    } catch {
+      stream?.getTracks().forEach((track) => track.stop());
+      stop();
+      setState("error");
+      setMessage("Sky AR se nepodařilo spustit. Zkontrolujte oprávnění kamery a zkuste to znovu.");
+    }
+  }, [requestSensors, state, stop]);
+
+  useEffect(() => () => runtimeRef.current?.stop(), []);
+
+  const canCalibrate = state === "running" && trackingMethod === "relative-sensors";
+  return (
+    <section className="space-y-4" aria-labelledby="sky-ar-heading">
+      <div className="relative aspect-[3/4] min-h-[460px] overflow-hidden rounded-3xl border border-slate-600 bg-slate-950 shadow-2xl shadow-blue-950/40 sm:aspect-video">
+        <div ref={stageRef} className="absolute inset-0" aria-label="Kamera Sky AR" />
+        {state !== "running" && <div className="absolute inset-0 flex items-center justify-center bg-slate-950/95 px-6 text-center text-base font-medium text-white">{message}</div>}
+        {state === "running" && <div className="pointer-events-none absolute inset-x-0 top-0 p-4"><p className="inline-block rounded-full border border-cyan-200/70 bg-slate-950/85 px-4 py-2 text-sm font-semibold text-white">Sky AR · 4 lodě · {trackingMethod === "relative-sensors" ? "relativní orientace" : "Screen AR"}</p></div>}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <button type="button" onClick={() => void requestSensors()} disabled={state === "loading" || sensorPermission === "granted" || sensorPermission === "unsupported"} className="rounded-2xl border-2 border-violet-300 bg-violet-400/20 px-5 py-4 text-base font-bold text-violet-50 transition hover:bg-violet-400/30 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500">{sensorPermission === "granted" ? "Senzory povoleny" : sensorPermission === "denied" ? "Zkusit povolit senzory" : "Povolit senzory"}</button>
+        <button type="button" onClick={() => void start()} disabled={state === "loading" || state === "running"} className="rounded-2xl bg-cyan-300 px-5 py-4 text-base font-bold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">{state === "loading" ? "Načítám…" : "Spustit Sky AR"}</button>
+        <button type="button" onClick={() => runtimeRef.current?.calibrate()} disabled={!canCalibrate} className="rounded-2xl border-2 border-cyan-300 bg-slate-900 px-5 py-4 text-base font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500">Znovu kalibrovat směr</button>
+        <button type="button" onClick={stop} disabled={state !== "running" && state !== "loading"} className="rounded-2xl border-2 border-slate-500 bg-slate-900 px-5 py-4 text-base font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500">Zastavit kameru</button>
+      </div>
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-cyan-300/40 bg-slate-900 px-4 py-3 text-sm leading-6 text-slate-100">
+        <div className="min-w-0 flex-1"><p id="sky-ar-heading" className="font-bold text-white">Sky AR test</p><p className="mt-1">Kompas není povinný. Se senzory se lodě zobrazují relativně ke směru při kalibraci; bez nich zůstává funkční Screen AR náhled.</p></div>
+        <button type="button" onClick={() => setDebugEnabled((value) => !value)} className="rounded-xl border border-slate-500 px-3 py-2 font-semibold text-white hover:bg-slate-800">Debug: {debugEnabled ? "zapnutý" : "vypnutý"}</button>
+      </div>
+      {debugEnabled && <p className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 font-mono text-xs text-cyan-100">Metoda: {trackingMethod} · oprávnění: {sensorPermission} · {debug}</p>}
+    </section>
+  );
+}
+
+export default SkyARDemo;
+
+/*
 export default function SkyARDemo() {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const runtimeRef = useRef<SkyRuntime | null>(null);
@@ -217,3 +522,4 @@ export default function SkyARDemo() {
     </section>
   );
 }
+*/

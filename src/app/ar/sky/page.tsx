@@ -3,7 +3,7 @@ import SkyARDemo from "@/features/ar/location-tracking/SkyARDemo";
 
 export const metadata = {
   title: "Sky AR test | ARuguer Reality",
-  description: "Experimentální kamera s několika vesmírnými loděmi reagujícími na orientaci telefonu.",
+  description: "Experimentální Sky AR s relativní orientací po kalibraci a Screen AR fallbackem bez kompasu.",
 };
 
 export default function SkyARPage() {
@@ -18,8 +18,8 @@ export default function SkyARPage() {
           <section>
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-cyan-200">Sky AR</p>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">Lodě nad horizontem.</h1>
-            <p className="mt-6 max-w-xl text-base leading-7 text-slate-200 sm:text-lg">Otevřete kameru, namiřte telefon na oblohu a otáčejte se. Ve scéně se zobrazí několik kopií vesmírné lodi.</p>
-            <p className="mt-5 text-sm leading-6 text-slate-300">Jde o senzorový vizuální test, ne o přesné geolokační AR ukotvení.</p>
+            <p className="mt-6 max-w-xl text-base leading-7 text-slate-200 sm:text-lg">Otevřete kameru, namiřte telefon na oblohu a otáčejte se. Po kalibraci se ve scéně zobrazí několik kopií vesmírné lodi.</p>
+            <p className="mt-5 text-sm leading-6 text-slate-300">Kompas není nutný: bez senzorů zůstane k dispozici Screen AR náhled. Nejde o přesné geolokační AR ukotvení.</p>
           </section>
           <SkyARDemo />
         </div>
