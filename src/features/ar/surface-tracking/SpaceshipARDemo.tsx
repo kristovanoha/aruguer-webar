@@ -431,66 +431,72 @@ export default function SpaceshipARDemo() {
   const arAvailable = arState === "placing" || arState === "placed";
 
   return (
-    <section className="space-y-4" aria-labelledby="spaceship-ar-heading">
-      <div className="relative aspect-[3/4] min-h-[460px] overflow-hidden rounded-3xl border border-white/10 bg-slate-950 shadow-2xl shadow-blue-950/30 sm:aspect-video">
+    <section className="space-y-5" aria-labelledby="spaceship-ar-heading">
+      <div className="relative aspect-[3/4] min-h-[460px] overflow-hidden rounded-[2rem] border border-slate-600 bg-slate-950 shadow-2xl shadow-blue-950/50 sm:aspect-video">
         <div ref={hostRef} className="absolute inset-0" />
         {loadState !== "ready" && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-slate-950/85 px-6 text-center text-sm text-slate-300">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-slate-950 px-6 text-center text-base font-medium text-white">
             <span>{loadState === "error" ? message : "Načítám model vesmírné lodi…"}</span>
-            {loadState === "loading" && <span className="text-xs text-blue-200">{loadProgress} %</span>}
+            {loadState === "loading" && <span className="rounded-full bg-blue-400 px-4 py-2 text-sm font-bold text-slate-950">{loadProgress} %</span>}
           </div>
         )}
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-between gap-2 p-3 text-xs">
-          <span className="rounded-full bg-slate-950/75 px-3 py-1.5 text-slate-200 backdrop-blur">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-between gap-2 p-4 text-sm font-semibold">
+          <span className="rounded-full border border-slate-600 bg-slate-950/95 px-4 py-2 text-white shadow-lg">
             {arAvailable ? "WebXR hit-test" : "3D náhled"}
           </span>
-          <span className="rounded-full bg-slate-950/75 px-3 py-1.5 text-slate-200 backdrop-blur">{modelScale.toFixed(1)} m</span>
+          <span className="rounded-full border border-slate-600 bg-slate-950/95 px-4 py-2 text-white shadow-lg">{modelScale.toFixed(1)} m</span>
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="rounded-[1.75rem] border border-slate-700 bg-slate-900 p-4 shadow-lg shadow-black/20">
+        <p className="mb-3 text-sm font-bold uppercase tracking-[0.16em] text-slate-300">Hlavní ovládání</p>
+        <div className="grid gap-3 sm:grid-cols-2">
         <button
           type="button"
           onClick={startAr}
           disabled={loadState !== "ready" || arAvailable || arState === "starting"}
-          className="rounded-2xl bg-blue-400 px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-14 rounded-2xl bg-blue-300 px-5 py-4 text-base font-bold text-slate-950 shadow-lg shadow-blue-500/20 transition hover:bg-blue-200 focus:outline-none focus:ring-4 focus:ring-blue-300/40 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none"
         >
-          Spustit AR
+          {arState === "starting" ? "Spouštím AR…" : "Spustit AR"}
         </button>
         <button
           type="button"
           onClick={preparePlacement}
           disabled={!arAvailable}
-          className="rounded-2xl border border-white/15 px-5 py-3.5 text-sm font-semibold text-slate-200 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-40"
+          className="min-h-14 rounded-2xl border-2 border-cyan-300 bg-cyan-300/10 px-5 py-4 text-base font-bold text-cyan-100 transition hover:bg-cyan-300/20 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
         >
           {arState === "placed" ? "Přemístit loď" : "Umístit loď"}
         </button>
+        </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <button type="button" onClick={() => updateBlinking(!blinking)} className="rounded-2xl border border-red-300/30 bg-red-300/10 px-4 py-3 text-sm font-semibold text-red-100 transition hover:bg-red-300/20">
+      <div className="rounded-[1.75rem] border border-slate-700 bg-slate-900 p-4 shadow-lg shadow-black/20">
+        <p className="mb-3 text-sm font-bold uppercase tracking-[0.16em] text-slate-300">Efekty a scéna</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+        <button type="button" onClick={() => updateBlinking(!blinking)} aria-pressed={blinking} className="min-h-14 rounded-2xl border-2 border-red-400 bg-red-500/15 px-4 py-3 text-base font-bold text-red-100 transition hover:bg-red-500/25 focus:outline-none focus:ring-4 focus:ring-red-400/30">
           Světla: {blinking ? "zapnutá" : "vypnutá"}
         </button>
-        <button type="button" onClick={() => updateHovering(!hovering)} className="rounded-2xl border border-blue-300/30 bg-blue-300/10 px-4 py-3 text-sm font-semibold text-blue-100 transition hover:bg-blue-300/20">
+        <button type="button" onClick={() => updateHovering(!hovering)} aria-pressed={hovering} className="min-h-14 rounded-2xl border-2 border-blue-400 bg-blue-500/15 px-4 py-3 text-base font-bold text-blue-100 transition hover:bg-blue-500/25 focus:outline-none focus:ring-4 focus:ring-blue-400/30">
           Vznášení: {hovering ? "zapnuté" : "vypnuté"}
         </button>
-        <button type="button" onClick={reset} disabled={!arAvailable} className="rounded-2xl border border-white/15 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-40">
+        <button type="button" onClick={reset} disabled={!arAvailable} className="min-h-14 rounded-2xl border-2 border-slate-500 bg-slate-800 px-4 py-3 text-base font-bold text-white transition hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-400/30 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500">
           Resetovat scénu
         </button>
-        <button type="button" onClick={endAr} disabled={!arAvailable} className="rounded-2xl border border-white/15 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-40">
+        <button type="button" onClick={endAr} disabled={!arAvailable} className="min-h-14 rounded-2xl border-2 border-slate-500 bg-slate-800 px-4 py-3 text-base font-bold text-white transition hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-400/30 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500">
           Ukončit AR
         </button>
+        </div>
       </div>
 
-      <label className="block rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm text-slate-300">
-        <span className="flex justify-between gap-4"><span>Velikost lodi</span><span>{modelScale.toFixed(1)} m</span></span>
-        <input className="mt-2 w-full accent-blue-300" type="range" min="0.4" max="1.4" step="0.1" value={modelScale} onChange={(event) => updateScale(Number(event.target.value))} />
+      <label className="block rounded-[1.75rem] border border-slate-700 bg-slate-900 px-5 py-4 text-base font-semibold text-white shadow-lg shadow-black/20">
+        <span className="flex items-center justify-between gap-4"><span>Velikost lodi</span><span className="rounded-full bg-blue-300 px-3 py-1 text-sm font-bold text-slate-950">{modelScale.toFixed(1)} m</span></span>
+        <input className="mt-4 h-3 w-full cursor-pointer accent-blue-300" type="range" min="0.4" max="1.4" step="0.1" value={modelScale} onChange={(event) => updateScale(Number(event.target.value))} />
       </label>
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm leading-6 text-slate-400" role="status">
-        <p id="spaceship-ar-heading" className="font-medium text-slate-200">Vesmírná loď – AR demo</p>
-        <p>{message}</p>
-        <p className="mt-1 text-slate-500">iOS Safari WebXR hit-test nepodporuje; bez samostatného USDZ assetu nelze nabídnout AR Quick Look. V tomto případě zůstává 3D náhled.</p>
+      <div className="rounded-[1.75rem] border border-blue-400/50 bg-slate-900 px-5 py-4 text-base leading-7 text-slate-100 shadow-lg shadow-black/20" role="status">
+        <p id="spaceship-ar-heading" className="font-bold text-white">Vesmírná loď – AR demo</p>
+        <p className="mt-1 font-medium">{message}</p>
+        <p className="mt-3 border-t border-slate-700 pt-3 text-sm leading-6 text-slate-300">iOS Safari nepodporuje WebXR hit-test. Bez USDZ assetu zde zůstává pouze 3D náhled.</p>
       </div>
     </section>
   );
