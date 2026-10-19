@@ -290,7 +290,6 @@ export default function ObjectTrackingDemo() {
       const createDetector = (delegate: "GPU" | "CPU") =>
         ObjectDetector.createFromOptions(vision, {
           baseOptions: { delegate, modelAssetPath: efficientDetLite0ModelPath },
-          categoryAllowlist: ["clock"],
           maxResults: 20,
           runningMode: "VIDEO",
           scoreThreshold: 0.3,
@@ -313,7 +312,7 @@ export default function ObjectTrackingDemo() {
               width: box.width,
               height: box.height,
               score: category.score,
-              category: category.categoryName,
+              category: category.categoryName || category.displayName,
               detectedAt: timestamp,
             }];
           }),

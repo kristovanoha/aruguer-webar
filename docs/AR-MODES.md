@@ -79,8 +79,10 @@ Object Detector až po kliknutí na spuštění kamery. Detekce běží lokáln�
 prohlížeči s verzovaným modelem EfficientDet-Lite0 (int8, verze 1), který má
 COCO kategorii `clock`. Detektor běží v režimu `VIDEO`, pro každý nový snímek
 předává monotónní timestamp a při nefunkčním GPU delegate přepne na CPU.
-Z kategorie `clock` se vybere pouze detekce s nejvyšším confidence; výchozí
-minimum je 0,55.
+Detektor vrací běžné COCO kategorie a aplikace z nich vybere kategorii `clock`
+s nejvyšším confidence; výchozí minimum je 0,55. Filtrování se záměrně
+provádí až v aplikaci, protože tím zůstává kompatibilní s modely, které vracejí
+název kategorie pouze jako `displayName`.
 
 WASM runtime i model se při startu stahují z pevných, verzovaných veřejných URL;
 binární model se proto nereplikuje do repozitáře. Překryv
