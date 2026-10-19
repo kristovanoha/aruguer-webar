@@ -34,6 +34,12 @@ export default function SkyARDemo() {
   const [state, setState] = useState<SkyState>("idle");
   const [message, setMessage] = useState("Kamera je vypnutá.");
   const [compassPermission, setCompassPermission] = useState<CompassPermission>("unknown");
+  const startLabel =
+    compassPermission === "denied"
+      ? "Spustit bez kompasu"
+      : state === "loading"
+        ? "Spouštím Sky AR…"
+        : "Spustit Sky AR";
 
   const stop = useCallback(() => {
     const runtime = runtimeRef.current;
@@ -62,7 +68,7 @@ export default function SkyARDemo() {
         setMessage("Kompas je povolený. Nyní spusťte Sky AR.");
       } else {
         setCompassPermission("denied");
-        setMessage("Kompas byl zamítnut. Sky AR lze spustit i bez něj.");
+        setMessage("Kompas byl zamítnut. Pokračujte tlačítkem Spustit bez kompasu.");
       }
     } catch {
       setCompassPermission("denied");
@@ -201,7 +207,7 @@ export default function SkyARDemo() {
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <button type="button" onClick={() => void requestCompassPermission()} disabled={state === "running" || compassPermission === "granted" || compassPermission === "not-required"} className="rounded-2xl border-2 border-violet-300 bg-violet-400/20 px-5 py-4 text-base font-bold text-violet-100 transition hover:bg-violet-400/30 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500">{compassPermission === "granted" ? "Kompas povolen" : "Povolit kompas"}</button>
-        <button type="button" onClick={() => void start()} disabled={state === "loading" || state === "running"} className="rounded-2xl bg-cyan-300 px-5 py-4 text-base font-bold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">{state === "loading" ? "Spouštím Sky AR…" : "Spustit Sky AR"}</button>
+        <button type="button" onClick={() => void start()} disabled={state === "loading" || state === "running"} className="rounded-2xl bg-cyan-300 px-5 py-4 text-base font-bold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">{startLabel}</button>
         <button type="button" onClick={stop} disabled={state !== "running" && state !== "loading"} className="rounded-2xl border-2 border-slate-500 bg-slate-900 px-5 py-4 text-base font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500">Zastavit kameru</button>
       </div>
       <div className="rounded-2xl border border-cyan-300/40 bg-slate-900 px-4 py-3 text-sm leading-6 text-slate-100">
