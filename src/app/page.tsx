@@ -88,6 +88,12 @@ export default function Home() {
             >
               Vesmírná loď – AR demo <span className="ml-2" aria-hidden="true">→</span>
             </Link>
+            <Link
+              href="/ar/sky"
+              className="ml-2 mt-5 inline-flex items-center rounded-full border border-violet-300 bg-violet-400/20 px-5 py-3 text-sm font-bold text-violet-100 transition hover:bg-violet-400/30 focus:outline-none focus:ring-4 focus:ring-violet-300/25"
+            >
+              Sky AR test <span className="ml-2" aria-hidden="true">→</span>
+            </Link>
           </div>
         </section>
 

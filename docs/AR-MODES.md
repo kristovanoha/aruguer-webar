@@ -8,6 +8,7 @@
 | Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + netvorBeh.glb |
 | AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite0 int8 v1 | public/ar/overlays/clock-overlay.png |
 | Vesmírná loď – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/vesmirnaLod.glb |
+| Sky AR test | Implementováno jako experiment | Three.js, kamera, Device Orientation | public/models/vesmirnaLod.glb |
 | Location AR | Plánováno | Ověřená location AR technologie | Není |
 | Face Tracking | Plánováno | MindAR nebo jiný ověřený face tracker | Není |
 
@@ -87,6 +88,15 @@ interaktivního 3D náhledu.
 Model má přibližně 83 MB, proto je před produkčním nasazením nutné zvážit
 optimalizovanou GLB variantu, ale současné demo zachovává dodané textury a
 detaily beze změny.
+
+## Sky AR test
+
+Route `/ar/sky` dynamicky načte zadní kameru, Device Orientation API a jediný
+GLB model, jehož čtyři kopie sdílejí geometrii i materiály. Transparentní
+Three.js canvas je vrstva nad kamerou. Lodě reagují na orientaci telefonu,
+nejde však o hit-test, geolokační AR ani persistentní anchor. Kompas a kamera
+vyžadují HTTPS/localhost a povolení uživatele; iOS může vyžadovat explicitní
+souhlas s orientačními senzory.
 
 ## AI Object Tracking demo
 

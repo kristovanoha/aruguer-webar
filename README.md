@@ -48,6 +48,10 @@ Demo vesmírné lodi je dostupné na `/ar/spaceship`. Používá stejný
 WebXR nebo Android Scene Viewer pro umístění do prostoru. iOS Safari bez
 samostatného USDZ assetu zůstává u 3D náhledu.
 
+Experimentální Sky AR test je dostupný na `/ar/sky`. Zobrazuje čtyři lodě přes
+živý obraz zadní kamery a reaguje na orientaci telefonu. Nejde o geolokační
+nebo persistentně ukotvené AR.
+
 Skutečné umístění modelu je nutné ověřit na fyzickém Android telefonu s Android Chrome a podporou Google Play Services for AR. Na nepodporovaných zařízeních zůstává funkční 3D prohlížeč.
 
 ## Nasazení na Vercel

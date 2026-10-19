@@ -39,11 +39,13 @@ implementované.
 | src/app/ar/demo/page.tsx | Route /ar/demo a kontext Surface AR | Implementováno |
 | src/app/ar/image/demo/page.tsx | Route /ar/image/demo a Image Tracking UI | Implementováno |
 | src/app/ar/spaceship/page.tsx | Route /ar/spaceship a kontext WebXR dema vesmírné lodi | Implementováno |
+| src/app/ar/sky/page.tsx | Route /ar/sky a kontext experimentálního Sky AR | Implementováno |
 | src/features/ar/surface-tracking/ARModelViewer.tsx | Client-only 3D viewer a AR aktivace | Implementováno |
 | src/features/ar/image-tracking/ImageTrackingDemo.tsx | Client-only MindAR lifecycle a anchor | Implementováno |
 | src/features/ar/image-tracking/mind-ar.d.ts | TypeScript kontrakt pro MindAR runtime | Implementováno |
 | src/features/ar/object-tracking/ObjectTrackingDemo.tsx | Client-only AI detekce hodin, kamera a image overlay | Implementováno jako demo |
 | src/features/ar/surface-tracking/SpaceshipARDemo.tsx | Client-only @google/model-viewer 3D náhled a aktivace AR vesmírné lodi | Implementováno jako demo |
+| src/features/ar/location-tracking/SkyARDemo.tsx | Client-only kamera, orientační senzory a více lodí ve Sky AR overlay | Implementováno jako experiment |
 
 ## Assety
 

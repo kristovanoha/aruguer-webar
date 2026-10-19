@@ -15,7 +15,7 @@ Tok požadavku:
         -> src/app/page.tsx, src/app/ar/demo/page.tsx,
            src/app/ar/image/demo/page.tsx nebo
            src/app/ar/object-tracking/demo/page.tsx nebo
-           src/app/ar/spaceship/page.tsx
+           src/app/ar/spaceship/page.tsx nebo src/app/ar/sky/page.tsx
           -> UI a client komponenty
             -> @google/model-viewer nebo MindAR + Three.js
               -> public/models/netvorBeh.glb, public/models/vesmirnaLod.glb
@@ -36,6 +36,8 @@ Odpovědnosti:
 - Route /ar/demo: demonstrace Surface AR.
 - Route /ar/image/demo: demonstrace Image Tracking s referenčním obrázkem.
 - Route /ar/spaceship: samostatné AR demo vesmírné lodi přes @google/model-viewer.
+- Route /ar/sky: experimentální camera overlay s orientačními senzory a více
+  instancemi stejného modelu.
 - ARModelViewer: client komponenta, dynamické načtení knihovny, viewer,
   loading/error stav a aktivace AR.
 - ImageTrackingDemo: client komponenta s dynamickým načtením MindAR, Three.js
@@ -45,6 +47,8 @@ Odpovědnosti:
   stabilizaci, překryv a cleanup.
 - SpaceshipARDemo: client komponenta s dynamickým načtením @google/model-viewer;
   používá stejný WebXR/Scene Viewer mechanismus jako ARModelViewer.
+- SkyARDemo: client komponenta s dynamickým načtením Three.js a GLTFLoaderu;
+  vlastní camera stream, orientační listener, transparentní renderer a cleanup.
 - netvorBeh.glb: uživatelský demonstrační model pro Surface AR a Image Tracking.
 - vesmirnaLod.glb: uživatelský demonstrační model pro Spaceship AR demo.
 - house-target.png a house-target.mind: přiložený obrázek a jeho MindAR
