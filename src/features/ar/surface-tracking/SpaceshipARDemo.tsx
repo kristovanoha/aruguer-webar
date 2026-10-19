@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { Mesh, MeshStandardMaterial, Object3D } from "three";
+import { useEffect, useRef, useState } from "react";
 
+/* Replaced by the model-viewer implementation below. The former custom WebXR
+ * prototype remains here temporarily for history while its runtime code is disabled.
+ */
+/*
 type LoadState = "loading" | "ready" | "error";
 type ArState = "preview" | "starting" | "placing" | "placed" | "unsupported" | "error";
 
@@ -497,6 +500,105 @@ export default function SpaceshipARDemo() {
         <p id="spaceship-ar-heading" className="font-bold text-white">Vesmírná loď – AR demo</p>
         <p className="mt-1 font-medium">{message}</p>
         <p className="mt-3 border-t border-slate-700 pt-3 text-sm leading-6 text-slate-300">iOS Safari nepodporuje WebXR hit-test. Bez USDZ assetu zde zůstává pouze 3D náhled.</p>
+      </div>
+    </section>
+  );
+}
+*/
+
+type ModelViewerProps = React.HTMLAttributes<HTMLElement> & {
+  alt: string;
+  ar?: boolean;
+  "ar-modes"?: string;
+  "camera-controls"?: boolean;
+  exposure?: string;
+  "shadow-intensity"?: string;
+  src: string;
+  "touch-action"?: string;
+  ref?: React.Ref<ModelViewerElement>;
+};
+
+type ModelViewerElement = HTMLElement & {
+  activateAR?: () => Promise<void>;
+};
+
+const ModelViewer = "model-viewer" as unknown as React.ComponentType<ModelViewerProps>;
+
+export default function SpaceshipARDemo() {
+  const viewerRef = useRef<ModelViewerElement | null>(null);
+  const [libraryReady, setLibraryReady] = useState(false);
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [modelError, setModelError] = useState(false);
+  const [arMessage, setArMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void import("@google/model-viewer")
+      .then(() => {
+        if (active) setLibraryReady(true);
+      })
+      .catch(() => {
+        if (active) setModelError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || !libraryReady) return;
+    const handleLoad = () => {
+      setModelLoaded(true);
+      setModelError(false);
+    };
+    const handleError = () => setModelError(true);
+    const handleArStatus = (event: Event) => {
+      const status = (event as CustomEvent<{ status?: string }>).detail?.status;
+      if (status === "object-placed") setArMessage("Vesmírná loď byla umístěna do prostoru.");
+      if (status === "failed") setArMessage("AR se nepodařilo spustit. Zkontrolujte oprávnění kamery a podporu Google Play Services for AR.");
+    };
+    viewer.addEventListener("load", handleLoad);
+    viewer.addEventListener("error", handleError);
+    viewer.addEventListener("ar-status", handleArStatus);
+    return () => {
+      viewer.removeEventListener("load", handleLoad);
+      viewer.removeEventListener("error", handleError);
+      viewer.removeEventListener("ar-status", handleArStatus);
+    };
+  }, [libraryReady]);
+
+  const activateAr = async () => {
+    setArMessage(null);
+    const viewer = viewerRef.current;
+    if (!viewer?.activateAR) {
+      setArMessage("Tento prohlížeč nepodporuje AR. 3D náhled zůstává dostupný.");
+      return;
+    }
+    try {
+      await viewer.activateAR();
+    } catch {
+      setArMessage("AR není na tomto zařízení dostupné. Použijte Android Chrome s podporou ARCore.");
+    }
+  };
+
+  return (
+    <section className="space-y-4" aria-labelledby="spaceship-ar-heading">
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-950/80 shadow-2xl shadow-blue-950/30">
+        {!libraryReady && !modelError && <div className="absolute inset-0 z-10 flex min-h-[420px] items-center justify-center bg-slate-950/90 px-6 text-center text-base font-medium text-white">Načítám 3D prohlížeč…</div>}
+        {modelError && <div className="absolute inset-0 z-10 flex min-h-[420px] items-center justify-center bg-slate-950 px-6 text-center text-base font-medium text-red-200">Model vesmírné lodi se nepodařilo načíst. Zkontrolujte soubor vesmirnaLod.glb.</div>}
+        {libraryReady && <ModelViewer ref={viewerRef} alt="3D model vesmírné lodi" ar ar-modes="webxr scene-viewer" camera-controls className="h-[420px] w-full sm:h-[520px]" exposure="1" shadow-intensity="1" src="/models/vesmirnaLod.glb" touch-action="pan-y" />}
+      </div>
+
+      <button type="button" onClick={activateAr} disabled={!libraryReady || !modelLoaded || modelError} className="w-full rounded-2xl bg-blue-300 px-5 py-4 text-base font-bold text-slate-950 shadow-lg shadow-blue-500/20 transition hover:bg-blue-200 focus:outline-none focus:ring-4 focus:ring-blue-300/40 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none">
+        Zobrazit v AR
+      </button>
+
+      {arMessage && <p className="rounded-2xl border border-blue-300/40 bg-blue-300/15 px-4 py-3 text-base font-medium leading-6 text-blue-50" role="status">{arMessage}</p>}
+
+      <div className="rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-base leading-6 text-slate-200">
+        <p id="spaceship-ar-heading" className="font-bold text-white">Vesmírná loď – AR demo</p>
+        <p className="mt-1">Model otáčejte prstem a přibližujte dvěma prsty. V AR režimu jej umístíte stejným způsobem jako původní demo.</p>
       </div>
     </section>
   );

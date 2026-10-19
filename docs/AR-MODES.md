@@ -7,7 +7,7 @@
 | Surface AR | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/netvorBeh.glb |
 | Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + netvorBeh.glb |
 | AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite0 int8 v1 | public/ar/overlays/clock-overlay.png |
-| Vesmírná loď – AR demo | Implementováno jako demo | Three.js 0.160.0 + WebXR hit-test | public/models/vesmirnaLod.glb |
+| Vesmírná loď – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/vesmirnaLod.glb |
 | Location AR | Plánováno | Ověřená location AR technologie | Není |
 | Face Tracking | Plánováno | MindAR nebo jiný ověřený face tracker | Není |
 
@@ -75,22 +75,15 @@ emulátor nepotvrzuje správné umístění modelu.
 
 ## Vesmírná loď – AR demo
 
-Route `/ar/spaceship` nejprve vytvoří lokální Three.js náhled velkého GLB
-modelu; model se proto nestahuje při návštěvě úvodní stránky. Po kliknutí na
-**Spustit AR** ověří podporu `immersive-ar` a vytvoří WebXR relaci s povinným
-`hit-test`. Loď není umístěna před kameru: objeví se až po nalezení vodorovné
-plochy a klepnutí na reticle. WebXR local reference space ji drží na stejném
-místě po dobu relace, nejde však o persistentní cloud anchor mezi relacemi.
-
-Deset programově vytvořených červených emissive světel bliká nezávisle,
-včetně občasného dvojitého bliknutí. Dvě modré emissive body značí přibližnou
-pozici motorů. Světla, vznášení a kolébání jsou části Three.js scény, a proto
-se nepřenášejí do externího Scene Vieweru ani AR Quick Looku.
+Route `/ar/spaceship` dynamicky načítá stejný @google/model-viewer jako
+stávající route `/ar/demo`; model se proto nestahuje při návštěvě úvodní
+stránky. Tlačítko **Zobrazit v AR** aktivuje WebXR nebo Android Scene Viewer,
+který zajistí vlastní detekci plochy a umístění modelu. Neobsahuje vlastní
+Three.js světla, animace ani ovládací panely.
 
 Primární cíl je Android Chrome s podporou ARCore, HTTPS a oprávněním kamery.
-iOS Safari nepodporuje potřebný WebXR hit-test. Projekt navíc nemá USDZ verzi
-modelu, takže iOS fallbackem je pouze interaktivní 3D náhled; AR Quick Look by
-vyžadoval samostatně připravený USDZ asset a nepodpořil by procedurální světla.
+iOS Safari bez USDZ verze modelu nemá AR Quick Look fallback a zůstává u
+interaktivního 3D náhledu.
 Model má přibližně 83 MB, proto je před produkčním nasazením nutné zvážit
 optimalizovanou GLB variantu, ale současné demo zachovává dodané textury a
 detaily beze změny.

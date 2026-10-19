@@ -43,7 +43,7 @@ implementované.
 | src/features/ar/image-tracking/ImageTrackingDemo.tsx | Client-only MindAR lifecycle a anchor | Implementováno |
 | src/features/ar/image-tracking/mind-ar.d.ts | TypeScript kontrakt pro MindAR runtime | Implementováno |
 | src/features/ar/object-tracking/ObjectTrackingDemo.tsx | Client-only AI detekce hodin, kamera a image overlay | Implementováno jako demo |
-| src/features/ar/surface-tracking/SpaceshipARDemo.tsx | Client-only 3D náhled, WebXR hit-test, ukotvení lodi a procedurální světla | Implementováno jako demo |
+| src/features/ar/surface-tracking/SpaceshipARDemo.tsx | Client-only @google/model-viewer 3D náhled a aktivace AR vesmírné lodi | Implementováno jako demo |
 
 ## Assety
 
