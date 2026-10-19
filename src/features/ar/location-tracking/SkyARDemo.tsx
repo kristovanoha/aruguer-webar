@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Material, Object3D, WebGLRenderer } from "three";
 
 type SkyState = "idle" | "loading" | "running" | "error";
+type CompassPermission = "unknown" | "granted" | "denied" | "not-required";
 
 type SkyRuntime = {
   renderer: WebGLRenderer;
@@ -32,6 +33,7 @@ export default function SkyARDemo() {
   const runtimeRef = useRef<SkyRuntime | null>(null);
   const [state, setState] = useState<SkyState>("idle");
   const [message, setMessage] = useState("Kamera je vypnutá.");
+  const [compassPermission, setCompassPermission] = useState<CompassPermission>("unknown");
 
   const stop = useCallback(() => {
     const runtime = runtimeRef.current;
@@ -43,6 +45,30 @@ export default function SkyARDemo() {
   }, []);
 
   useEffect(() => stop, [stop]);
+
+  const requestCompassPermission = async () => {
+    const orientation = DeviceOrientationEvent as typeof DeviceOrientationEvent & {
+      requestPermission?: () => Promise<PermissionState>;
+    };
+    if (!orientation.requestPermission) {
+      setCompassPermission("not-required");
+      setMessage("Tento prohlížeč nevyžaduje samostatné povolení kompasu.");
+      return;
+    }
+    try {
+      const result = await orientation.requestPermission();
+      if (result === "granted") {
+        setCompassPermission("granted");
+        setMessage("Kompas je povolený. Nyní spusťte Sky AR.");
+      } else {
+        setCompassPermission("denied");
+        setMessage("Kompas byl zamítnut. Sky AR lze spustit i bez něj.");
+      }
+    } catch {
+      setCompassPermission("denied");
+      setMessage("Kompas nelze povolit. Zkontrolujte nastavení oprávnění tohoto webu.");
+    }
+  };
 
   const start = async () => {
     const stage = stageRef.current;
@@ -57,12 +83,11 @@ export default function SkyARDemo() {
     setMessage("Načítám kameru, kompas a lodě…");
     let acquiredStream: MediaStream | null = null;
     try {
+      let orientationGranted = true;
       const orientation = DeviceOrientationEvent as typeof DeviceOrientationEvent & {
         requestPermission?: () => Promise<PermissionState>;
       };
-      if (orientation.requestPermission && (await orientation.requestPermission()) !== "granted") {
-        throw new Error("orientation-denied");
-      }
+      if (orientation.requestPermission) orientationGranted = compassPermission === "granted";
 
       const [three, { GLTFLoader }, stream] = await Promise.all([
         import("three"),
@@ -133,7 +158,7 @@ export default function SkyARDemo() {
         ));
         camera.quaternion.multiply(new three.Quaternion().setFromAxisAngle(new three.Vector3(1, 0, 0), -Math.PI / 2));
       };
-      window.addEventListener("deviceorientation", updateOrientation, true);
+      if (orientationGranted) window.addEventListener("deviceorientation", updateOrientation, true);
       renderer.setAnimationLoop(() => renderer.render(scene, camera));
 
       const runtime: SkyRuntime = {
@@ -141,7 +166,7 @@ export default function SkyARDemo() {
         stream,
         stop: () => {
           window.removeEventListener("resize", resize);
-          window.removeEventListener("deviceorientation", updateOrientation, true);
+          if (orientationGranted) window.removeEventListener("deviceorientation", updateOrientation, true);
           renderer.setAnimationLoop(null);
           stream.getTracks().forEach((track) => track.stop());
           video.pause();
@@ -154,12 +179,16 @@ export default function SkyARDemo() {
       runtimeRef.current = runtime;
       acquiredStream = null;
       setState("running");
-      setMessage("Namiřte telefon na oblohu a pomalu se otáčejte. Lodě reagují na orientaci telefonu.");
+      setMessage(
+        orientationGranted
+          ? "Namiřte telefon na oblohu a pomalu se otáčejte. Lodě reagují na orientaci telefonu."
+          : "Kompas není povolený, ale Sky AR běží. Lodě zůstanou ve středu obrazu a nebudou reagovat na otočení telefonu.",
+      );
     } catch (error) {
       acquiredStream?.getTracks().forEach((track) => track.stop());
       stop();
       setState("error");
-      setMessage(error instanceof Error && error.message === "orientation-denied" ? "Přístup ke kompasu byl zamítnut." : "Sky AR se nepodařilo spustit. Zkontrolujte oprávnění kamery a kompasu.");
+      setMessage("Sky AR se nepodařilo spustit. Zkontrolujte oprávnění kamery.");
     }
   };
 
@@ -170,7 +199,8 @@ export default function SkyARDemo() {
         {state !== "running" && <div className="absolute inset-0 flex items-center justify-center bg-slate-950/95 px-6 text-center text-base font-medium text-white">{message}</div>}
         {state === "running" && <div className="pointer-events-none absolute inset-x-0 top-0 p-4"><p className="inline-block rounded-full border border-slate-600 bg-slate-950/90 px-4 py-2 text-sm font-semibold text-white">Sky AR · 4 lodě</p></div>}
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <button type="button" onClick={() => void requestCompassPermission()} disabled={state === "running" || compassPermission === "granted" || compassPermission === "not-required"} className="rounded-2xl border-2 border-violet-300 bg-violet-400/20 px-5 py-4 text-base font-bold text-violet-100 transition hover:bg-violet-400/30 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500">{compassPermission === "granted" ? "Kompas povolen" : "Povolit kompas"}</button>
         <button type="button" onClick={() => void start()} disabled={state === "loading" || state === "running"} className="rounded-2xl bg-cyan-300 px-5 py-4 text-base font-bold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">{state === "loading" ? "Spouštím Sky AR…" : "Spustit Sky AR"}</button>
         <button type="button" onClick={stop} disabled={state !== "running" && state !== "loading"} className="rounded-2xl border-2 border-slate-500 bg-slate-900 px-5 py-4 text-base font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500">Zastavit kameru</button>
       </div>
