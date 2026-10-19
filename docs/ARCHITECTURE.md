@@ -14,10 +14,12 @@ Tok požadavku:
       -> Next.js App Router
         -> src/app/page.tsx, src/app/ar/demo/page.tsx,
            src/app/ar/image/demo/page.tsx nebo
-           src/app/ar/object-tracking/demo/page.tsx
+           src/app/ar/object-tracking/demo/page.tsx nebo
+           src/app/ar/spaceship/page.tsx
           -> UI a client komponenty
             -> @google/model-viewer nebo MindAR + Three.js
-              -> public/models/netvorBeh.glb nebo public/targets/house-target.mind
+              -> public/models/netvorBeh.glb, public/models/vesmirnaLod.glb
+                 nebo public/targets/house-target.mind
               -> WebXR, Android Scene Viewer nebo camera-based image tracking
 
 Odpovědnosti:
@@ -33,6 +35,8 @@ Odpovědnosti:
 - Route /: prezentační úvodní stránka s přehledem plánovaných režimů.
 - Route /ar/demo: demonstrace Surface AR.
 - Route /ar/image/demo: demonstrace Image Tracking s referenčním obrázkem.
+- Route /ar/spaceship: samostatné Three.js WebXR demo s hit-testem, ukotvením
+  na vodorovnou plochu a procedurálními světly.
 - ARModelViewer: client komponenta, dynamické načtení knihovny, viewer,
   loading/error stav a aktivace AR.
 - ImageTrackingDemo: client komponenta s dynamickým načtením MindAR, Three.js
@@ -40,7 +44,11 @@ Odpovědnosti:
 - ObjectTrackingDemo: client komponenta s dynamickým načtením Google MediaPipe
   Tasks Vision a Object Detectoru; řídí kameru, lokální detekci hodin, EMA
   stabilizaci, překryv a cleanup.
+- SpaceshipARDemo: client komponenta s dynamickým načtením Three.js,
+  GLTFLoaderu a OrbitControls. Jeden renderer nejprve vytváří 3D náhled a po
+  aktivaci přejde do WebXR `immersive-ar` relace s hit-testem.
 - netvorBeh.glb: uživatelský demonstrační model pro Surface AR a Image Tracking.
+- vesmirnaLod.glb: uživatelský demonstrační model pro Spaceship AR demo.
 - house-target.png a house-target.mind: přiložený obrázek a jeho MindAR
   feature data.
 

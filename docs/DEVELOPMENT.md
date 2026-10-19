@@ -44,6 +44,7 @@ Při změně AR komponenty ověřte také dostupnost modelu:
 
 ~~~bash
 curl -I http://localhost:3000/models/netvorBeh.glb
+curl -I http://localhost:3000/models/vesmirnaLod.glb
 ~~~
 
 Při změně Image Tracking targetu znovu vytvořte .mind soubor:
@@ -73,3 +74,6 @@ Výstup patří do public/targets/house-target.mind.
 Projekt nemá automatizovanou testovací sadu. Zbývá ověřit zejména povolení
 kamery, odmítnutí kamery, rozpoznání targetu, návrat z AR session, opakovanou
 aktivaci, rotaci displeje, throttling a chování při pomalé síti.
+U demo vesmírné lodi ověřte také načtení velkého modelu na mobilní síti,
+hit-test vodorovné plochy, reticle, přemístění/reset, ukončení AR relace a
+stabilitu ukotvení na fyzickém Android telefonu.

@@ -42,6 +42,12 @@ Kamera a Google MediaPipe Object Detector s modelem EfficientDet-Lite0 běží
 lokálně v prohlížeči a při detekci hodin vykreslí
 obrázek z `public/ar/overlays/clock-overlay.png`.
 
+Demo vesmírné lodi je dostupné na `/ar/spaceship`. Nejprve načte interaktivní
+3D náhled modelu `public/models/vesmirnaLod.glb`; na podporovaném Android
+Chrome potom WebXR hit-test umožní skutečné umístění na nalezenou vodorovnou
+plochu. Blikající světla a vznášení běží pouze v Three.js WebXR scéně. iOS
+Safari bez samostatného USDZ assetu zůstává u 3D náhledu.
+
 Skutečné umístění modelu je nutné ověřit na fyzickém Android telefonu s Android Chrome a podporou Google Play Services for AR. Na nepodporovaných zařízeních zůstává funkční 3D prohlížeč.
 
 ## Nasazení na Vercel

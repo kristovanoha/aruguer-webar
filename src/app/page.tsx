@@ -82,6 +82,12 @@ export default function Home() {
             >
               AI Object Tracking demo <span className="ml-2" aria-hidden="true">→</span>
             </Link>
+            <Link
+              href="/ar/spaceship"
+              className="ml-2 mt-5 inline-flex items-center rounded-full border border-cyan-300/30 bg-cyan-300/10 px-5 py-3 text-sm font-semibold text-cyan-100 transition hover:border-cyan-200/60 hover:bg-cyan-300/20"
+            >
+              Vesmírná loď – AR demo <span className="ml-2" aria-hidden="true">→</span>
+            </Link>
           </div>
         </section>
 
