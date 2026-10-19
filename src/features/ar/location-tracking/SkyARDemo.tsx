@@ -93,6 +93,7 @@ export function SkyARDemo() {
   const requestSensors = useCallback(async (): Promise<SensorPermission> => {
     if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) {
       setSensorPermission("unsupported");
+      setMessage("Tento prohlížeč neposkytuje orientační senzory. Sky AR lze spustit jako statický náhled.");
       return "unsupported";
     }
 
@@ -100,6 +101,7 @@ export function SkyARDemo() {
     const orientationEvent = window.DeviceOrientationEvent as PermissionEvent;
     if (!orientationEvent.requestPermission) {
       setSensorPermission("granted");
+      setMessage("Prohlížeč nevyžaduje zvláštní souhlas se senzory. Spusťte Sky AR.");
       return "granted";
     }
 
@@ -107,9 +109,11 @@ export function SkyARDemo() {
       const result = await orientationEvent.requestPermission();
       const permission = result === "granted" ? "granted" : "denied";
       setSensorPermission(permission);
+      setMessage(permission === "granted" ? "Senzory jsou povolené. Nyní spusťte Sky AR." : "Přístup k orientačním senzorům byl zamítnut. Sky AR lze i přesto spustit jako statický náhled.");
       return permission;
     } catch {
       setSensorPermission("denied");
+      setMessage("Přístup k orientačním senzorům se nepodařilo povolit. Zkontrolujte oprávnění webu v nastavení prohlížeče.");
       return "denied";
     }
   }, []);
@@ -129,7 +133,7 @@ export function SkyARDemo() {
 
     let stream: MediaStream | null = null;
     try {
-      const permission = await requestSensors();
+      const permission = sensorPermission === "granted" ? "granted" : await requestSensors();
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
       const activeStream = stream;
       const [THREE, { GLTFLoader }] = await Promise.all([import("three"), import("three/examples/jsm/loaders/GLTFLoader.js")]);
@@ -238,7 +242,7 @@ export function SkyARDemo() {
           setMessage("Směr je znovu kalibrovaný. Lodě zůstávají ve světě relativně k tomuto směru.");
         } else {
           setTrackingMethod("screen-fallback");
-          setMessage("Senzory nejsou dostupné. Běží Screen AR: lodě nejsou ukotvené ve skutečném prostoru.");
+          setMessage("Senzory nejsou dostupné. Lodě se zobrazují jako statický náhled a při pohybu telefonu se neukotví.");
         }
         placeShips();
       };
@@ -273,7 +277,7 @@ export function SkyARDemo() {
       const timeout = window.setTimeout(() => {
         if (!hasOrientation) {
           setTrackingMethod("screen-fallback");
-          setMessage("Sky AR běží bez senzorů jako Screen AR. Lodě jsou viditelné, ale nejsou ukotvené při pohybu telefonu.");
+          setMessage("Sky AR běží bez senzorů jako statický náhled. Lodě jsou viditelné, ale při pohybu telefonu se neukotví.");
         } else calibrate();
       }, 900);
 
@@ -296,24 +300,25 @@ export function SkyARDemo() {
       };
       stream = null;
       setState("running");
-      setMessage(permission === "granted" ? "Kalibruji relativní směr…" : "Sky AR běží bez kompasu jako Screen AR.");
+      setMessage(permission === "granted" ? "Kalibruji relativní směr…" : "Sky AR běží bez orientačních senzorů jako statický náhled.");
     } catch {
       stream?.getTracks().forEach((track) => track.stop());
       stop();
       setState("error");
       setMessage("Sky AR se nepodařilo spustit. Zkontrolujte oprávnění kamery a zkuste to znovu.");
     }
-  }, [requestSensors, state, stop]);
+  }, [requestSensors, sensorPermission, state, stop]);
 
   useEffect(() => () => runtimeRef.current?.stop(), []);
 
   const canCalibrate = state === "running" && trackingMethod === "relative-sensors";
+  const sensorPermissionLabel = sensorPermission === "granted" ? "povoleno" : sensorPermission === "denied" ? "zamítnuto" : sensorPermission === "unsupported" ? "nepodporováno" : "nevyžádáno";
   return (
     <section className="space-y-4" aria-labelledby="sky-ar-heading">
       <div className="relative aspect-[3/4] min-h-[460px] overflow-hidden rounded-3xl border border-slate-600 bg-slate-950 shadow-2xl shadow-blue-950/40 sm:aspect-video">
         <div ref={stageRef} className="absolute inset-0" aria-label="Kamera Sky AR" />
         {state !== "running" && <div className="absolute inset-0 flex items-center justify-center bg-slate-950/95 px-6 text-center text-base font-medium text-white">{message}</div>}
-        {state === "running" && <div className="pointer-events-none absolute inset-x-0 top-0 p-4"><p className="inline-block rounded-full border border-cyan-200/70 bg-slate-950/85 px-4 py-2 text-sm font-semibold text-white">Sky AR · 4 lodě · {trackingMethod === "relative-sensors" ? "relativní orientace" : "Screen AR"}</p></div>}
+        {state === "running" && <div className="pointer-events-none absolute inset-x-0 top-0 p-4"><p className="inline-block rounded-full border border-cyan-200/70 bg-slate-950/85 px-4 py-2 text-sm font-semibold text-white">Sky AR · 4 lodě · {trackingMethod === "relative-sensors" ? "relativní orientace" : "statický náhled"}</p></div>}
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <button type="button" onClick={() => void requestSensors()} disabled={state === "loading" || sensorPermission === "granted" || sensorPermission === "unsupported"} className="rounded-2xl border-2 border-violet-300 bg-violet-400/20 px-5 py-4 text-base font-bold text-violet-50 transition hover:bg-violet-400/30 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500">{sensorPermission === "granted" ? "Senzory povoleny" : sensorPermission === "denied" ? "Zkusit povolit senzory" : "Povolit senzory"}</button>
@@ -325,7 +330,7 @@ export function SkyARDemo() {
         <div className="min-w-0 flex-1"><p id="sky-ar-heading" className="font-bold text-white">Sky AR test</p><p className="mt-1">Kompas není povinný. Se senzory se lodě zobrazují relativně ke směru při kalibraci; bez nich zůstává funkční Screen AR náhled.</p></div>
         <button type="button" onClick={() => setDebugEnabled((value) => !value)} className="rounded-xl border border-slate-500 px-3 py-2 font-semibold text-white hover:bg-slate-800">Debug: {debugEnabled ? "zapnutý" : "vypnutý"}</button>
       </div>
-      {debugEnabled && <p className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 font-mono text-xs text-cyan-100">Metoda: {trackingMethod} · oprávnění: {sensorPermission} · {debug}</p>}
+      {debugEnabled && <p className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 font-mono text-xs text-cyan-100">Orientační senzory: {sensorPermissionLabel} · sledování směru: {trackingMethod === "relative-sensors" ? "aktivní" : "neaktivní"} · {debug}</p>}
     </section>
   );
 }
