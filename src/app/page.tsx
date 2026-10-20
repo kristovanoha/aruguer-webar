@@ -100,6 +100,12 @@ export default function Home() {
             >
               fockeWolf190 <span className="ml-2" aria-hidden="true">→</span>
             </Link>
+            <Link
+              href="/ar/demo/infinite-wall"
+              className="ml-2 mt-5 inline-flex items-center rounded-full border border-cyan-100/60 bg-cyan-200/15 px-5 py-3 text-sm font-bold text-cyan-50 transition hover:bg-cyan-200/25 focus:outline-none focus:ring-4 focus:ring-cyan-100/25"
+            >
+              Nekonečná ledová zeď <span className="ml-2" aria-hidden="true">→</span>
+            </Link>
           </div>
         </section>
 

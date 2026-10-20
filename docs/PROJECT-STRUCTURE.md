@@ -37,11 +37,13 @@ implementované.
 | src/app/globals.css | Globální CSS a Tailwind import | Implementováno |
 | src/app/page.tsx | Úvodní landing page a odkaz na AR demo | Implementováno |
 | src/app/ar/demo/page.tsx | Route /ar/demo a kontext Surface AR | Implementováno |
+| src/app/ar/demo/infinite-wall/page.tsx | Route /ar/demo/infinite-wall a kontext ledové zdi | Implementováno jako experiment |
 | src/app/ar/image/demo/page.tsx | Route /ar/image/demo a Image Tracking UI | Implementováno |
 | src/app/ar/spaceship/page.tsx | Route /ar/spaceship a kontext WebXR dema vesmírné lodi | Implementováno |
 | src/app/ar/focke-wolf-190/page.tsx | Route /ar/focke-wolf-190 a kontext Surface AR letounu | Implementováno |
 | src/app/ar/sky/page.tsx | Route /ar/sky a kontext experimentálního Sky AR | Implementováno |
 | src/features/ar/surface-tracking/ARModelViewer.tsx | Client-only 3D viewer a AR aktivace | Implementováno |
+| src/features/ar/surface-tracking/InfiniteIceWallDemo.tsx | Client-only procedurální ledová zeď, Three.js viewer a WebXR hit-test | Implementováno jako experiment |
 | src/features/ar/image-tracking/ImageTrackingDemo.tsx | Client-only MindAR lifecycle a anchor | Implementováno |
 | src/features/ar/image-tracking/mind-ar.d.ts | TypeScript kontrakt pro MindAR runtime | Implementováno |
 | src/features/ar/object-tracking/ObjectTrackingDemo.tsx | Client-only AI detekce hodin, kamera a image overlay | Implementováno jako demo |
@@ -56,6 +58,7 @@ implementované.
 | public/models/netvorBeh.glb | Lokální GLB model netvora pro Surface AR a Image Tracking | Implementováno |
 | public/models/vesmirnaLod.glb | Lokální GLB model vesmírné lodi (přibližně 83 MB) | Implementováno jako demo |
 | public/models/fockeWolf190.glb | Lokální GLB model letounu Focke-Wulf 190 (přibližně 21 MB) | Implementováno jako demo |
+| public/models/ice-wall.glb | Volitelný GLB segment ledové zdi | Čeká na dodání |
 | public/ar/overlays/clock-overlay.png | Dočasný image overlay pro AI Object Tracking | Implementováno jako placeholder |
 | public/targets/house-target.png | Referenční obrázek dodaný uživatelem | Implementováno |
 | public/targets/house-target.mind | Zkompilovaná MindAR data targetu | Implementováno |

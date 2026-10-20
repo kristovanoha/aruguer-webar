@@ -9,6 +9,7 @@
 | AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite0 int8 v1 | public/ar/overlays/clock-overlay.png |
 | Vesmírná loď – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/vesmirnaLod.glb |
 | Focke-Wulf 190 – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/fockeWolf190.glb |
+| Nekonečná ledová zeď | Implementováno jako experiment | Three.js, WebXR hit-test | Procedurální placeholder / public/models/ice-wall.glb |
 | Sky AR test | Implementováno jako experiment | Three.js, kamera, Device Orientation | public/models/vesmirnaLod.glb |
 | Location AR | Plánováno | Ověřená location AR technologie | Není |
 | Face Tracking | Plánováno | MindAR nebo jiný ověřený face tracker | Není |
@@ -96,6 +97,17 @@ Route `/ar/focke-wolf-190` načítá lokální model až po otevření stránky.
 **Zobrazit na ploše v AR** aktivuje stejný WebXR nebo Android Scene Viewer
 mechanismus jako základní Surface AR demo. Detekci vodorovné plochy a umístění
 zajišťuje AR prohlížeč; bez podpory zůstává ovladatelný 3D náhled.
+
+## Nekonečná ledová zeď
+
+Route `/ar/demo/infinite-wall` dynamicky načítá Three.js scénu s omezeným
+počtem opakovaných horizontálních segmentů. Bez assetu `public/models/ice-wall.glb`
+použije procedurální instancovaný placeholder. Pokud je GLB dostupné, komponenta
+změří jeho `Box3` a první sestavení segmentů zarovná podle skutečné šířky a spodní
+hrany modelu. Horizontální `FogExp2` skrývá vzdálené segmenty a transparentní
+horní vrstva vytváří výškový opar. WebXR hit-test se používá pouze na podporovaném
+Android Chrome; iOS Safari zůstává v 3D vieweru, protože AR Quick Look neumí
+vykreslit procedurální Three.js scénu.
 
 ## Sky AR test
 

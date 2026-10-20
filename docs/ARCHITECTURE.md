@@ -15,7 +15,8 @@ Tok požadavku:
         -> src/app/page.tsx, src/app/ar/demo/page.tsx,
            src/app/ar/image/demo/page.tsx nebo
            src/app/ar/object-tracking/demo/page.tsx nebo
-           src/app/ar/spaceship/page.tsx, src/app/ar/focke-wolf-190/page.tsx nebo src/app/ar/sky/page.tsx
+           src/app/ar/spaceship/page.tsx, src/app/ar/focke-wolf-190/page.tsx,
+           src/app/ar/demo/infinite-wall/page.tsx nebo src/app/ar/sky/page.tsx
           -> UI a client komponenty
             -> @google/model-viewer nebo MindAR + Three.js
               -> public/models/netvorBeh.glb, public/models/vesmirnaLod.glb, public/models/fockeWolf190.glb
@@ -37,6 +38,7 @@ Odpovědnosti:
 - Route /ar/image/demo: demonstrace Image Tracking s referenčním obrázkem.
 - Route /ar/spaceship: samostatné AR demo vesmírné lodi přes @google/model-viewer.
 - Route /ar/focke-wolf-190: samostatné Surface AR demo letounu přes @google/model-viewer.
+- Route /ar/demo/infinite-wall: procedurální Three.js ledová zeď s WebXR hit-testem.
 - Route /ar/sky: experimentální camera overlay s relativní orientací po
   kalibraci a více instancemi stejného modelu; funguje i jako Screen AR bez
   senzorů.
@@ -51,6 +53,8 @@ Odpovědnosti:
   používá stejný WebXR/Scene Viewer mechanismus jako ARModelViewer.
 - FockeWolf190ARDemo: client komponenta s dynamickým načtením @google/model-viewer;
   umístí model letounu na plochu přes WebXR/Scene Viewer.
+- InfiniteIceWallDemo: client komponenta s instancovaným procedurálním fallbackem,
+  mlhou, 3D viewerem a volitelným WebXR hit-testem.
 - SkyARDemo: client komponenta s dynamickým načtením Three.js a GLTFLoaderu;
   vlastní camera stream, relativní orientační listener, Screen AR fallback,
   transparentní renderer a cleanup.
