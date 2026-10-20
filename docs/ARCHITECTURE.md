@@ -15,10 +15,10 @@ Tok požadavku:
         -> src/app/page.tsx, src/app/ar/demo/page.tsx,
            src/app/ar/image/demo/page.tsx nebo
            src/app/ar/object-tracking/demo/page.tsx nebo
-           src/app/ar/spaceship/page.tsx nebo src/app/ar/sky/page.tsx
+           src/app/ar/spaceship/page.tsx, src/app/ar/focke-wolf-190/page.tsx nebo src/app/ar/sky/page.tsx
           -> UI a client komponenty
             -> @google/model-viewer nebo MindAR + Three.js
-              -> public/models/netvorBeh.glb, public/models/vesmirnaLod.glb
+              -> public/models/netvorBeh.glb, public/models/vesmirnaLod.glb, public/models/fockeWolf190.glb
                  nebo public/targets/house-target.mind
               -> WebXR, Android Scene Viewer nebo camera-based image tracking
 
@@ -36,6 +36,7 @@ Odpovědnosti:
 - Route /ar/demo: demonstrace Surface AR.
 - Route /ar/image/demo: demonstrace Image Tracking s referenčním obrázkem.
 - Route /ar/spaceship: samostatné AR demo vesmírné lodi přes @google/model-viewer.
+- Route /ar/focke-wolf-190: samostatné Surface AR demo letounu přes @google/model-viewer.
 - Route /ar/sky: experimentální camera overlay s relativní orientací po
   kalibraci a více instancemi stejného modelu; funguje i jako Screen AR bez
   senzorů.
@@ -48,11 +49,14 @@ Odpovědnosti:
   stabilizaci, překryv a cleanup.
 - SpaceshipARDemo: client komponenta s dynamickým načtením @google/model-viewer;
   používá stejný WebXR/Scene Viewer mechanismus jako ARModelViewer.
+- FockeWolf190ARDemo: client komponenta s dynamickým načtením @google/model-viewer;
+  umístí model letounu na plochu přes WebXR/Scene Viewer.
 - SkyARDemo: client komponenta s dynamickým načtením Three.js a GLTFLoaderu;
   vlastní camera stream, relativní orientační listener, Screen AR fallback,
   transparentní renderer a cleanup.
 - netvorBeh.glb: uživatelský demonstrační model pro Surface AR a Image Tracking.
 - vesmirnaLod.glb: uživatelský demonstrační model pro Spaceship AR demo.
+- fockeWolf190.glb: uživatelský demonstrační model pro Surface AR demo letounu.
 - house-target.png a house-target.mind: přiložený obrázek a jeho MindAR
   feature data.
 

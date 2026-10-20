@@ -8,6 +8,7 @@
 | Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + netvorBeh.glb |
 | AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite0 int8 v1 | public/ar/overlays/clock-overlay.png |
 | Vesmírná loď – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/vesmirnaLod.glb |
+| Focke-Wulf 190 – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/fockeWolf190.glb |
 | Sky AR test | Implementováno jako experiment | Three.js, kamera, Device Orientation | public/models/vesmirnaLod.glb |
 | Location AR | Plánováno | Ověřená location AR technologie | Není |
 | Face Tracking | Plánováno | MindAR nebo jiný ověřený face tracker | Není |
@@ -88,6 +89,13 @@ interaktivního 3D náhledu.
 Model má přibližně 83 MB, proto je před produkčním nasazením nutné zvážit
 optimalizovanou GLB variantu, ale současné demo zachovává dodané textury a
 detaily beze změny.
+
+## Focke-Wulf 190 – AR demo
+
+Route `/ar/focke-wolf-190` načítá lokální model až po otevření stránky. Tlačítko
+**Zobrazit na ploše v AR** aktivuje stejný WebXR nebo Android Scene Viewer
+mechanismus jako základní Surface AR demo. Detekci vodorovné plochy a umístění
+zajišťuje AR prohlížeč; bez podpory zůstává ovladatelný 3D náhled.
 
 ## Sky AR test
 

@@ -39,12 +39,14 @@ implementované.
 | src/app/ar/demo/page.tsx | Route /ar/demo a kontext Surface AR | Implementováno |
 | src/app/ar/image/demo/page.tsx | Route /ar/image/demo a Image Tracking UI | Implementováno |
 | src/app/ar/spaceship/page.tsx | Route /ar/spaceship a kontext WebXR dema vesmírné lodi | Implementováno |
+| src/app/ar/focke-wolf-190/page.tsx | Route /ar/focke-wolf-190 a kontext Surface AR letounu | Implementováno |
 | src/app/ar/sky/page.tsx | Route /ar/sky a kontext experimentálního Sky AR | Implementováno |
 | src/features/ar/surface-tracking/ARModelViewer.tsx | Client-only 3D viewer a AR aktivace | Implementováno |
 | src/features/ar/image-tracking/ImageTrackingDemo.tsx | Client-only MindAR lifecycle a anchor | Implementováno |
 | src/features/ar/image-tracking/mind-ar.d.ts | TypeScript kontrakt pro MindAR runtime | Implementováno |
 | src/features/ar/object-tracking/ObjectTrackingDemo.tsx | Client-only AI detekce hodin, kamera a image overlay | Implementováno jako demo |
 | src/features/ar/surface-tracking/SpaceshipARDemo.tsx | Client-only @google/model-viewer 3D náhled a aktivace AR vesmírné lodi | Implementováno jako demo |
+| src/features/ar/surface-tracking/FockeWolf190ARDemo.tsx | Client-only 3D náhled a AR aktivace letounu | Implementováno jako demo |
 | src/features/ar/location-tracking/SkyARDemo.tsx | Client-only kamera, relativní orientace s kalibrací, Screen AR fallback a více lodí | Implementováno jako experiment |
 
 ## Assety
@@ -53,6 +55,7 @@ implementované.
 | --- | --- | --- |
 | public/models/netvorBeh.glb | Lokální GLB model netvora pro Surface AR a Image Tracking | Implementováno |
 | public/models/vesmirnaLod.glb | Lokální GLB model vesmírné lodi (přibližně 83 MB) | Implementováno jako demo |
+| public/models/fockeWolf190.glb | Lokální GLB model letounu Focke-Wulf 190 (přibližně 21 MB) | Implementováno jako demo |
 | public/ar/overlays/clock-overlay.png | Dočasný image overlay pro AI Object Tracking | Implementováno jako placeholder |
 | public/targets/house-target.png | Referenční obrázek dodaný uživatelem | Implementováno |
 | public/targets/house-target.mind | Zkompilovaná MindAR data targetu | Implementováno |

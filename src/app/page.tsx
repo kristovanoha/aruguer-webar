@@ -94,6 +94,12 @@ export default function Home() {
             >
               Sky AR test <span className="ml-2" aria-hidden="true">→</span>
             </Link>
+            <Link
+              href="/ar/focke-wolf-190"
+              className="ml-2 mt-5 inline-flex items-center rounded-full border border-amber-300 bg-amber-400/20 px-5 py-3 text-sm font-bold text-amber-100 transition hover:bg-amber-400/30 focus:outline-none focus:ring-4 focus:ring-amber-300/25"
+            >
+              fockeWolf190 <span className="ml-2" aria-hidden="true">→</span>
+            </Link>
           </div>
         </section>
 
