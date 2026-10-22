@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | Surface AR | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/netvorBeh.glb |
 | Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + netvorBeh.glb |
-| AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite0 int8 v1 | public/ar/overlays/clock-overlay.png |
+| AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite2 int8 v1 | public/ar/overlays/clock-overlay.png |
 | YOLOX detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX Nano | public/models/ai/yolox_nano.onnx |
 | Vesmírná loď – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/vesmirnaLod.glb |
 | Focke-Wulf 190 – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/fockeWolf190.glb |
@@ -142,8 +142,10 @@ Původní MediaPipe modul se tímto nemění.
 
 Route `/ar/object-tracking/demo` načítá Google MediaPipe Tasks Vision a
 Object Detector až po kliknutí na spuštění kamery. Detekce běží lokálně v
-prohlížeči s verzovaným modelem EfficientDet-Lite0 (int8, verze 1), který má
-COCO kategorii `clock`. Detektor běží v režimu `VIDEO`, pro každý nový snímek
+prohlížeči s verzovaným modelem EfficientDet-Lite2 (int8, verze 1), který má
+COCO kategorii `clock`. Lite2 používá větší vstupní rozlišení než předchozí
+Lite0, proto může lépe rozeznat menší hodiny, ale je náročnější na výkon.
+Detektor běží v režimu `VIDEO`, pro každý nový snímek
 předává monotónní timestamp a při nefunkčním GPU delegate přepne na CPU.
 Detektor vrací běžné COCO kategorie a aplikace z nich vybere kategorii `clock`
 s nejvyšším confidence; výchozí minimum je 0,55. Filtrování se záměrně

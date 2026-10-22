@@ -48,8 +48,8 @@ Odpovědnosti:
 - ImageTrackingDemo: client komponenta s dynamickým načtením MindAR, Three.js
   a GLTFLoader; řídí camera session, anchor a cleanup.
 - ObjectTrackingDemo: client komponenta s dynamickým načtením Google MediaPipe
-  Tasks Vision a Object Detectoru; řídí kameru, lokální detekci hodin, EMA
-  stabilizaci, překryv a cleanup.
+  Tasks Vision a Object Detectoru s EfficientDet-Lite2 int8; řídí kameru,
+  lokální detekci hodin, EMA stabilizaci, překryv a cleanup.
 - YoloXClockDetectionDemo: client komponenta s dynamickým načtením ONNX Runtime Web;
   provádí lokální YOLOX Nano inferenci, NMS, diagnostiku a volitelný image overlay.
 - SpaceshipARDemo: client komponenta s dynamickým načtením @google/model-viewer;

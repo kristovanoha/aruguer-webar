@@ -38,8 +38,10 @@ const trackingSmoothingFactor = 0.34;
 const velocitySmoothingFactor = 0.42;
 const maxMissedFrames = 5;
 const mediaPipeWasmPath = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
-const efficientDetLite0ModelPath =
-  "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite";
+// Lite2 keeps the same COCO label set (including "clock") as Lite0, while
+// using a larger input resolution for better recognition of smaller objects.
+const efficientDetLite2ModelPath =
+  "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite2/int8/1/efficientdet_lite2.tflite";
 
 function getCenter(box: Pick<Detection, "x" | "y" | "width" | "height">) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
@@ -307,7 +309,7 @@ export default function ObjectTrackingDemo() {
       const vision = await FilesetResolver.forVisionTasks(mediaPipeWasmPath);
       const createDetector = (delegate: "GPU" | "CPU") =>
         ObjectDetector.createFromOptions(vision, {
-          baseOptions: { delegate, modelAssetPath: efficientDetLite0ModelPath },
+          baseOptions: { delegate, modelAssetPath: efficientDetLite2ModelPath },
           maxResults: 20,
           runningMode: "VIDEO",
           scoreThreshold: 0.1,
@@ -526,7 +528,7 @@ export default function ObjectTrackingDemo() {
             />
           </label>
           <div className="sm:col-span-2 rounded-xl border border-amber-300/20 bg-slate-950/40 p-3 text-xs leading-5 text-amber-50">
-            <p>Model: EfficientDet-Lite0 int8 · MediaPipe 0.10.35 · delegate: {delegate ?? "–"}</p>
+            <p>Model: EfficientDet-Lite2 int8 · MediaPipe 0.10.35 · delegate: {delegate ?? "–"}</p>
             <p>Kamera: {cameraState} · zdroj: {videoSource.width ? `${videoSource.width} × ${videoSource.height}` : "–"} · inference: {inferenceMs === null ? "–" : `${inferenceMs.toFixed(1)} ms`}</p>
             <p>Dokončené inference: {inferenceCount} · všechny nálezy modelu: {allDetections.length} · clock před filtrem: {allDetections.filter((item) => item.category.toLowerCase() === "clock").length} · aktivní stopy: {trackedClocks.length}</p>
             <p>Top kategorie: {allDetections.slice(0, 5).map((item) => `${item.category} ${Math.round(item.score * 100)} %`).join(" · ") || "žádné"}</p>
