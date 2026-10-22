@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 type CameraState = "idle" | "starting" | "running" | "error";
@@ -193,6 +193,7 @@ export default function ObjectTrackingDemo() {
   const confidenceRef = useRef(0.55);
   const trackedClocksRef = useRef<TrackedClock[]>([]);
   const nextTrackIdRef = useRef(1);
+  const runDetectionRef = useRef<() => void>(() => undefined);
 
   const [cameraState, setCameraState] = useState<CameraState>("idle");
   const [modelState, setModelState] = useState<ModelState>("idle");
@@ -205,6 +206,10 @@ export default function ObjectTrackingDemo() {
   const [scaleFactor, setScaleFactor] = useState(1);
   const [viewport, setViewport] = useState<Viewport>({ width: 0, height: 0 });
   const [overlayAspectRatio, setOverlayAspectRatio] = useState(1);
+  const [videoSource, setVideoSource] = useState<Viewport>({ width: 0, height: 0 });
+  const [allDetections, setAllDetections] = useState<Detection[]>([]);
+  const [inferenceMs, setInferenceMs] = useState<number | null>(null);
+  const [delegate, setDelegate] = useState<"GPU" | "CPU" | null>(null);
 
   const stopCamera = useCallback(() => {
     sessionRef.current += 1;
@@ -225,6 +230,9 @@ export default function ObjectTrackingDemo() {
     trackedClocksRef.current = [];
     nextTrackIdRef.current = 1;
     setTrackedClocks([]);
+    setAllDetections([]);
+    setInferenceMs(null);
+    setDelegate(null);
     setLastDetectedAt(null);
     setCameraState("idle");
     setModelState("idle");
@@ -233,7 +241,7 @@ export default function ObjectTrackingDemo() {
   const runDetection = useCallback(async () => {
     if (!runningRef.current || !modelRef.current || !videoRef.current) return;
     if (inferenceBusyRef.current || videoRef.current.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-      inferenceTimerRef.current = setTimeout(() => void runDetection(), detectionIntervalMs);
+      inferenceTimerRef.current = setTimeout(() => runDetectionRef.current(), detectionIntervalMs);
       return;
     }
 
@@ -243,7 +251,10 @@ export default function ObjectTrackingDemo() {
       if (videoTime === lastVideoTimeRef.current) return;
 
       const timestamp = Math.max(videoTime * 1000, lastInferenceTimestampRef.current + 0.01);
+      const inferenceStartedAt = performance.now();
       const results = modelRef.current.detect(videoRef.current, timestamp);
+      setInferenceMs(performance.now() - inferenceStartedAt);
+      setAllDetections(results);
       lastVideoTimeRef.current = videoTime;
       lastInferenceTimestampRef.current = timestamp;
       if (!runningRef.current) return;
@@ -263,10 +274,14 @@ export default function ObjectTrackingDemo() {
     } finally {
       inferenceBusyRef.current = false;
       if (runningRef.current) {
-        inferenceTimerRef.current = setTimeout(() => void runDetection(), detectionIntervalMs);
+        inferenceTimerRef.current = setTimeout(() => runDetectionRef.current(), detectionIntervalMs);
       }
     }
   }, []);
+
+  useEffect(() => {
+    runDetectionRef.current = () => void runDetection();
+  }, [runDetection]);
 
   const startCamera = async () => {
     if (cameraState === "starting" || cameraState === "running") return;
@@ -292,13 +307,15 @@ export default function ObjectTrackingDemo() {
           baseOptions: { delegate, modelAssetPath: efficientDetLite0ModelPath },
           maxResults: 20,
           runningMode: "VIDEO",
-          scoreThreshold: 0.3,
+          scoreThreshold: 0.1,
         });
       let detector: Awaited<ReturnType<typeof ObjectDetector.createFromOptions>>;
       try {
         detector = await createDetector("GPU");
+        setDelegate("GPU");
       } catch {
         detector = await createDetector("CPU");
+        setDelegate("CPU");
       }
       const model: DetectionModel = {
         detect: (input, timestamp) =>
@@ -312,7 +329,7 @@ export default function ObjectTrackingDemo() {
               width: box.width,
               height: box.height,
               score: category.score,
-              category: category.categoryName || category.displayName,
+              category: category.categoryName || category.displayName || "neznámá kategorie",
               detectedAt: timestamp,
             }];
           }),
@@ -343,6 +360,7 @@ export default function ObjectTrackingDemo() {
       if (!videoRef.current) throw new Error("Video element is unavailable.");
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
+      setVideoSource({ width: videoRef.current.videoWidth, height: videoRef.current.videoHeight });
       runningRef.current = true;
       setCameraState("running");
       void runDetection();
@@ -378,22 +396,12 @@ export default function ObjectTrackingDemo() {
 
   useEffect(() => stopCamera, [stopCamera]);
 
-  const trackGeometries = useMemo(() => {
-    if (!videoRef.current) return [];
-    return trackedClocks
-      .map((clock) => ({
-        clock,
-        geometry: getCoverGeometry(
-          clock,
-          videoRef.current?.videoWidth ?? 0,
-          videoRef.current?.videoHeight ?? 0,
-          viewport,
-          overlayAspectRatio,
-          scaleFactor,
-        ),
-      }))
-      .filter((item): item is { clock: TrackedClock; geometry: NonNullable<ReturnType<typeof getCoverGeometry>> } => item.geometry !== null);
-  }, [overlayAspectRatio, scaleFactor, trackedClocks, viewport]);
+  const trackGeometries = trackedClocks
+    .map((clock) => ({ clock, geometry: getCoverGeometry(clock, videoSource.width, videoSource.height, viewport, overlayAspectRatio, scaleFactor) }))
+    .filter((item): item is { clock: TrackedClock; geometry: NonNullable<ReturnType<typeof getCoverGeometry>> } => item.geometry !== null);
+  const diagnosticGeometries = allDetections
+    .map((detection) => ({ detection, geometry: getCoverGeometry(detection, videoSource.width, videoSource.height, viewport, 1, 1) }))
+    .filter((item): item is { detection: Detection; geometry: NonNullable<ReturnType<typeof getCoverGeometry>> } => item.geometry !== null);
 
   const modelLabel =
     modelState === "loading" ? "Načítám AI model…" : modelState === "ready" ? "AI model připraven" : "AI model není spuštěn";
@@ -425,14 +433,14 @@ export default function ObjectTrackingDemo() {
             style={{ left: geometry.left, top: geometry.top, width: geometry.width, height: geometry.height }}
           />
         ))}
-        {debugEnabled && trackGeometries.map(({ clock, geometry }) => (
+        {debugEnabled && diagnosticGeometries.map(({ detection, geometry }, index) => (
           <div
-            key={`debug-${clock.id}`}
-            className="pointer-events-none absolute border-2 border-amber-300"
+            key={`debug-${detection.category}-${index}`}
+            className={`pointer-events-none absolute border-2 ${detection.category.toLowerCase() === "clock" ? "border-emerald-300" : "border-amber-300"}`}
             style={{ left: geometry.boxLeft, top: geometry.boxTop, width: geometry.boxWidth, height: geometry.boxHeight }}
           >
-            <span className="absolute left-0 top-0 -translate-y-full bg-amber-300 px-1.5 py-0.5 text-[11px] font-semibold text-slate-950">
-              #{clock.id} · {Math.round(clock.score * 100)} %
+            <span className="absolute left-0 top-0 -translate-y-full whitespace-nowrap bg-amber-300 px-1.5 py-0.5 text-[11px] font-semibold text-slate-950">
+              {detection.category} · {Math.round(detection.score * 100)} %
             </span>
           </div>
         ))}
@@ -490,8 +498,8 @@ export default function ObjectTrackingDemo() {
             <input
               className="mt-2 w-full accent-amber-300"
               type="range"
-              min="0.3"
-              max="0.9"
+              min="0.1"
+              max="0.8"
               step="0.05"
               value={minConfidence}
               onChange={(event) => setMinConfidence(Number(event.target.value))}
@@ -509,6 +517,14 @@ export default function ObjectTrackingDemo() {
               onChange={(event) => setScaleFactor(Number(event.target.value))}
             />
           </label>
+          <div className="sm:col-span-2 rounded-xl border border-amber-300/20 bg-slate-950/40 p-3 text-xs leading-5 text-amber-50">
+            <p>Model: EfficientDet-Lite0 int8 · MediaPipe 0.10.35 · delegate: {delegate ?? "–"}</p>
+            <p>Kamera: {cameraState} · zdroj: {videoSource.width ? `${videoSource.width} × ${videoSource.height}` : "–"} · inference: {inferenceMs === null ? "–" : `${inferenceMs.toFixed(1)} ms`}</p>
+            <p>Všechny nálezy modelu: {allDetections.length} · clock před filtrem: {allDetections.filter((item) => item.category.toLowerCase() === "clock").length} · aktivní stopy: {trackedClocks.length}</p>
+            <p>Top kategorie: {allDetections.slice(0, 5).map((item) => `${item.category} ${Math.round(item.score * 100)} %`).join(" · ") || "žádné"}</p>
+            <p className="mt-1">Diagnostika: oranžové rámečky jsou všechny výsledky MediaPipe, zelený je kategorie clock. Pokud nejsou žádné oranžové rámečky, problém je v modelu nebo vstupu kamery; pokud jsou bez zeleného, model hodiny nerozpoznává; pokud je zelený bez obrázku, problém je ve filtru nebo překryvu.</p>
+            {message && <p className="mt-1 font-semibold text-red-200">Poslední zpráva: {message}</p>}
+          </div>
         </div>
       )}
 
