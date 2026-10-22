@@ -42,11 +42,14 @@ implementované.
 | src/app/ar/spaceship/page.tsx | Route /ar/spaceship a kontext WebXR dema vesmírné lodi | Implementováno |
 | src/app/ar/focke-wolf-190/page.tsx | Route /ar/focke-wolf-190 a kontext Surface AR letounu | Implementováno |
 | src/app/ar/sky/page.tsx | Route /ar/sky a kontext experimentálního Sky AR | Implementováno |
+| src/app/ar/object-tracking/yolox-demo/page.tsx | Route nezávislé YOLOX diagnostiky hodin | Implementováno jako demo |
 | src/features/ar/surface-tracking/ARModelViewer.tsx | Client-only 3D viewer a AR aktivace | Implementováno |
 | src/features/ar/surface-tracking/InfiniteIceWallDemo.tsx | Client-only procedurální ledová zeď, Three.js viewer a WebXR hit-test | Implementováno jako experiment |
 | src/features/ar/image-tracking/ImageTrackingDemo.tsx | Client-only MindAR lifecycle a anchor | Implementováno |
 | src/features/ar/image-tracking/mind-ar.d.ts | TypeScript kontrakt pro MindAR runtime | Implementováno |
 | src/features/ar/object-tracking/ObjectTrackingDemo.tsx | Client-only AI detekce hodin, kamera a image overlay | Implementováno jako demo |
+| src/features/ar/object-tracking/YoloXClockDetectionDemo.tsx | Client-only YOLOX Nano foto/kamera diagnostika a image overlay | Implementováno jako demo |
+| src/features/ar/object-tracking/yolox.ts | Preprocessing, YOLOX dekódování a NMS | Implementováno |
 | src/features/ar/surface-tracking/SpaceshipARDemo.tsx | Client-only @google/model-viewer 3D náhled a aktivace AR vesmírné lodi | Implementováno jako demo |
 | src/features/ar/surface-tracking/FockeWolf190ARDemo.tsx | Client-only 3D náhled a AR aktivace letounu | Implementováno jako demo |
 | src/features/ar/location-tracking/SkyARDemo.tsx | Client-only kamera, relativní orientace s kalibrací, Screen AR fallback a více lodí | Implementováno jako experiment |
@@ -59,6 +62,7 @@ implementované.
 | public/models/vesmirnaLod.glb | Lokální GLB model vesmírné lodi (přibližně 83 MB) | Implementováno jako demo |
 | public/models/fockeWolf190.glb | Lokální GLB model letounu Focke-Wulf 190 (přibližně 21 MB) | Implementováno jako demo |
 | public/models/ice-wall.glb | Volitelný GLB segment ledové zdi | Čeká na dodání |
+| public/models/ai/yolox_nano.onnx | Oficiální YOLOX Nano ONNX release 0.1.1rc0 (3.5 MB, Apache-2.0) | Implementováno |
 | public/ar/overlays/clock-overlay.png | Dočasný image overlay pro AI Object Tracking | Implementováno jako placeholder |
 | public/targets/house-target.png | Referenční obrázek dodaný uživatelem | Implementováno |
 | public/targets/house-target.mind | Zkompilovaná MindAR data targetu | Implementováno |

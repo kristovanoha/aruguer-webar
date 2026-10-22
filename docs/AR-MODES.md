@@ -7,6 +7,7 @@
 | Surface AR | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/netvorBeh.glb |
 | Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + netvorBeh.glb |
 | AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite0 int8 v1 | public/ar/overlays/clock-overlay.png |
+| YOLOX detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX Nano | public/models/ai/yolox_nano.onnx |
 | Vesmírná loď – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/vesmirnaLod.glb |
 | Focke-Wulf 190 – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/fockeWolf190.glb |
 | Nekonečná ledová zeď | Implementováno jako experiment | Three.js, WebXR hit-test | Procedurální placeholder / public/models/ice-wall.glb |
@@ -119,6 +120,23 @@ senzory nepovolí nebo je prohlížeč neposkytne, demo pokračuje v režimu Scr
 AR bez ukotvení při pohybu telefonu. Nejde o hit-test, geolokační AR ani
 persistentní anchor. Kamera vyžaduje HTTPS/localhost; iOS může vyžadovat
 explicitní souhlas s orientačními senzory.
+
+## YOLOX detekce hodin
+
+Route `/ar/object-tracking/yolox-demo` je nezávislý diagnostický modul. Používá
+oficiální YOLOX Nano ONNX release 0.1.1rc0 z projektu Megvii YOLOX
+([Apache-2.0](https://github.com/Megvii-BaseDetection/YOLOX/blob/main/LICENSE)) a
+`onnxruntime-web` 1.30.0 (MIT). Lokální soubor `public/models/ai/yolox_nano.onnx`
+má SHA-256 `c789161ed43c8269fcd4e67c67eeeb4e80c622da2eb296a20bc6007bd18a0b7d`
+a velikost 3,573,760 B. Vstup je `float32[1,3,416,416]` a výstup
+`float32[1,3549,85]`; komponenta provádí BGR letterbox preprocessing, YOLOX
+grid/stride dekódování, confidence výpočet a per-class NMS. WASM je pevný
+výchozí backend pro Android Chrome, Brave a iOS Safari.
+
+Nejprve lze testovat lokální fotografii, poté zadní kameru. Debug panel zobrazuje
+vstupy, backend, inference čas, top kategorie, box před/po převodu a stav
+kamery. `Testovat překrytí` odděluje problém vykreslování od AI detekce.
+Původní MediaPipe modul se tímto nemění.
 
 ## AI Object Tracking demo
 

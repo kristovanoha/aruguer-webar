@@ -14,12 +14,12 @@ Tok požadavku:
       -> Next.js App Router
         -> src/app/page.tsx, src/app/ar/demo/page.tsx,
            src/app/ar/image/demo/page.tsx nebo
-           src/app/ar/object-tracking/demo/page.tsx nebo
+           src/app/ar/object-tracking/demo/page.tsx, src/app/ar/object-tracking/yolox-demo/page.tsx nebo
            src/app/ar/spaceship/page.tsx, src/app/ar/focke-wolf-190/page.tsx,
            src/app/ar/demo/infinite-wall/page.tsx nebo src/app/ar/sky/page.tsx
           -> UI a client komponenty
-            -> @google/model-viewer nebo MindAR + Three.js
-              -> public/models/netvorBeh.glb, public/models/vesmirnaLod.glb, public/models/fockeWolf190.glb
+            -> @google/model-viewer, MindAR + Three.js, MediaPipe nebo ONNX Runtime Web
+              -> public/models/netvorBeh.glb, public/models/vesmirnaLod.glb, public/models/fockeWolf190.glb, public/models/ai/yolox_nano.onnx
                  nebo public/targets/house-target.mind
               -> WebXR, Android Scene Viewer nebo camera-based image tracking
 
@@ -39,6 +39,7 @@ Odpovědnosti:
 - Route /ar/spaceship: samostatné AR demo vesmírné lodi přes @google/model-viewer.
 - Route /ar/focke-wolf-190: samostatné Surface AR demo letounu přes @google/model-viewer.
 - Route /ar/demo/infinite-wall: procedurální Three.js ledová zeď s WebXR hit-testem.
+- Route /ar/object-tracking/yolox-demo: nezávislá foto/kamera diagnostika hodin přes YOLOX Nano a ONNX Runtime Web.
 - Route /ar/sky: experimentální camera overlay s relativní orientací po
   kalibraci a více instancemi stejného modelu; funguje i jako Screen AR bez
   senzorů.
@@ -49,6 +50,8 @@ Odpovědnosti:
 - ObjectTrackingDemo: client komponenta s dynamickým načtením Google MediaPipe
   Tasks Vision a Object Detectoru; řídí kameru, lokální detekci hodin, EMA
   stabilizaci, překryv a cleanup.
+- YoloXClockDetectionDemo: client komponenta s dynamickým načtením ONNX Runtime Web;
+  provádí lokální YOLOX Nano inferenci, NMS, diagnostiku a volitelný image overlay.
 - SpaceshipARDemo: client komponenta s dynamickým načtením @google/model-viewer;
   používá stejný WebXR/Scene Viewer mechanismus jako ARModelViewer.
 - FockeWolf190ARDemo: client komponenta s dynamickým načtením @google/model-viewer;

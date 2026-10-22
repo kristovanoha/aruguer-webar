@@ -42,6 +42,10 @@ Kamera a Google MediaPipe Object Detector s modelem EfficientDet-Lite0 běží
 lokálně v prohlížeči a při detekci hodin vykreslí
 obrázek z `public/ar/overlays/clock-overlay.png`.
 
+Nezávislá YOLOX diagnostika je dostupná na `/ar/object-tracking/yolox-demo`.
+Nejprve otestuje nahranou fotografii, poté volitelně zadní kameru. Používá
+lokální ONNX model a WASM backend; původní MediaPipe demo tím nemění.
+
 Demo vesmírné lodi je dostupné na `/ar/spaceship`. Používá stejný
 @google/model-viewer postup jako původní AR demo: nabízí 3D náhled modelu
 `public/models/vesmirnaLod.glb` a na podporovaném Android telefonu otevře
