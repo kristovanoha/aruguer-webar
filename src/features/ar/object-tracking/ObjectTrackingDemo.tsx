@@ -210,6 +210,7 @@ export default function ObjectTrackingDemo() {
   const [allDetections, setAllDetections] = useState<Detection[]>([]);
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
   const [delegate, setDelegate] = useState<"GPU" | "CPU" | null>(null);
+  const [inferenceCount, setInferenceCount] = useState(0);
 
   const stopCamera = useCallback(() => {
     sessionRef.current += 1;
@@ -233,6 +234,7 @@ export default function ObjectTrackingDemo() {
     setAllDetections([]);
     setInferenceMs(null);
     setDelegate(null);
+    setInferenceCount(0);
     setLastDetectedAt(null);
     setCameraState("idle");
     setModelState("idle");
@@ -255,6 +257,7 @@ export default function ObjectTrackingDemo() {
       const results = modelRef.current.detect(videoRef.current, timestamp);
       setInferenceMs(performance.now() - inferenceStartedAt);
       setAllDetections(results);
+      setInferenceCount((count) => count + 1);
       lastVideoTimeRef.current = videoTime;
       lastInferenceTimestampRef.current = timestamp;
       if (!runningRef.current) return;
@@ -444,6 +447,11 @@ export default function ObjectTrackingDemo() {
             </span>
           </div>
         ))}
+        {debugEnabled && (
+          <div className="pointer-events-none absolute left-[12%] top-[14%] h-[18%] w-[28%] border-2 border-dashed border-fuchsia-300 bg-fuchsia-300/10">
+            <span className="absolute left-0 top-0 -translate-y-full whitespace-nowrap bg-fuchsia-300 px-1.5 py-0.5 text-[11px] font-semibold text-slate-950">Testovací debug rámeček</span>
+          </div>
+        )}
         {cameraState !== "running" && (
           <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80 px-6 text-center text-sm text-slate-300">
             {cameraState === "error" ? message : "Spusťte kameru a namiřte ji na nástěnné hodiny."}
@@ -520,9 +528,9 @@ export default function ObjectTrackingDemo() {
           <div className="sm:col-span-2 rounded-xl border border-amber-300/20 bg-slate-950/40 p-3 text-xs leading-5 text-amber-50">
             <p>Model: EfficientDet-Lite0 int8 · MediaPipe 0.10.35 · delegate: {delegate ?? "–"}</p>
             <p>Kamera: {cameraState} · zdroj: {videoSource.width ? `${videoSource.width} × ${videoSource.height}` : "–"} · inference: {inferenceMs === null ? "–" : `${inferenceMs.toFixed(1)} ms`}</p>
-            <p>Všechny nálezy modelu: {allDetections.length} · clock před filtrem: {allDetections.filter((item) => item.category.toLowerCase() === "clock").length} · aktivní stopy: {trackedClocks.length}</p>
+            <p>Dokončené inference: {inferenceCount} · všechny nálezy modelu: {allDetections.length} · clock před filtrem: {allDetections.filter((item) => item.category.toLowerCase() === "clock").length} · aktivní stopy: {trackedClocks.length}</p>
             <p>Top kategorie: {allDetections.slice(0, 5).map((item) => `${item.category} ${Math.round(item.score * 100)} %`).join(" · ") || "žádné"}</p>
-            <p className="mt-1">Diagnostika: oranžové rámečky jsou všechny výsledky MediaPipe, zelený je kategorie clock. Pokud nejsou žádné oranžové rámečky, problém je v modelu nebo vstupu kamery; pokud jsou bez zeleného, model hodiny nerozpoznává; pokud je zelený bez obrázku, problém je ve filtru nebo překryvu.</p>
+            <p className="mt-1">Diagnostika: fialový přerušovaný rámeček musí být vždy viditelný a potvrzuje vykreslování. Oranžové rámečky jsou všechny výsledky MediaPipe, zelený je kategorie clock. Pokud přibývá počet inferencí, ale nejsou žádné oranžové rámečky, model ve snímku nic nenachází; pokud jsou bez zeleného, hodiny neklasifikuje jako clock.</p>
             {message && <p className="mt-1 font-semibold text-red-200">Poslední zpráva: {message}</p>}
           </div>
         </div>
