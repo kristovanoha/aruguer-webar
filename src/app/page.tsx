@@ -107,6 +107,12 @@ export default function Home() {
               OpenCV tracker test <span className="ml-2" aria-hidden="true">→</span>
             </Link>
             <Link
+              href="/ar/object-tracking/mindar-clock-test"
+              className="ml-2 mt-5 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-200 focus:outline-none focus:ring-4 focus:ring-emerald-200/40"
+            >
+              Stabilní tracking hodin – MindAR test <span className="ml-2" aria-hidden="true">→</span>
+            </Link>
+            <Link
               href="/ar/spaceship"
               className="ml-2 mt-5 inline-flex items-center rounded-full border border-cyan-300 bg-cyan-400/20 px-5 py-3 text-sm font-bold text-cyan-100 transition hover:bg-cyan-400/30 focus:outline-none focus:ring-4 focus:ring-cyan-300/25"
             >

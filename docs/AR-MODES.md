@@ -11,6 +11,7 @@
 | YOLOX-s 640 detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX-s | public/models/ai/yolox_s.onnx |
 | YOLOX-s 640 tracker hodin | Implementováno jako diagnostické demo | ONNX Runtime Web + YOLOX-s + obrazový tracker | public/models/ai/yolox_s.onnx |
 | OpenCV tracker test | Implementováno jako diagnostické demo | ONNX Runtime Web + YOLOX-s + OpenCV.js Lucas–Kanade optical flow | public/models/ai/yolox_s.onnx |
+| Stabilní tracking hodin – MindAR test | Implementováno jako experiment | MindAR 1.2.5 image tracking | public/targets/hodiny.jfif + public/targets/hodiny.mind |
 | Vesmírná loď – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/vesmirnaLod.glb |
 | Focke-Wulf 190 – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/fockeWolf190.glb |
 | Nekonečná ledová zeď | Implementováno jako experiment | Three.js, WebXR hit-test | Procedurální placeholder / public/models/ice-wall.glb |
@@ -188,6 +189,16 @@ hlavním vlákně a proto je sledovací snímek omezen šířkou 640 px a aktual
 se nejvýše přibližně jednou za 45 ms. Při ztrátě příliš mnoha bodů tracker
 bezpečně uvolní data a čeká na další AI detekci. Ruční označení je diagnostický
 fallback, nikoli náhrada rozpoznání `clock`.
+
+## Stabilní tracking hodin – MindAR test
+
+Route `/ar/object-tracking/mindar-clock-test` používá MindAR target vytvořený
+lokálně z dodané fotografie `public/targets/hodiny.jfif`. Na rozdíl od YOLOX
+nepřenáší pozici z detekčního boxu: MindAR hledá konkrétní obrazové rysy této
+referenční fotografie a překryv je připojen přímo k image anchoru. Test proto
+není univerzální pro jiné hodiny a vyžaduje podobný úhel, měřítko a dobré
+osvětlení. Target `public/targets/hodiny.mind` byl vytvořen skriptem
+`scripts/compile-mind-target.mjs`.
 
 ## AI Object Tracking demo
 

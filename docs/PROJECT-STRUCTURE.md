@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | AGENTS.md | Pravidla pro Codex a vývojové workflow | Implementováno |
 | README.md | Krátký onboarding a nasazení | Implementováno |
+| docs/OBJECT-TRACKING-EXPERIMENTS.md | Průběžný log pokusů a omezení detekce/sledování hodin | Implementováno |
 | package.json | Skripty a závislosti | Implementováno |
 | package-lock.json | Reprodukovatelný npm strom | Implementováno |
 | next.config.ts | Konfigurace Next.js | Implementováno |
@@ -48,9 +49,11 @@ implementované.
 | src/app/ar/object-tracking/yolox-s-demo/page.tsx | Route samostatné YOLOX-s 640 diagnostiky hodin | Implementováno jako demo |
 | src/app/ar/object-tracking/yolox-s-tracking-demo/page.tsx | Route YOLOX-s 640 diagnostiky s průběžným trackingem hodin | Implementováno jako demo |
 | src/app/ar/object-tracking/opencv-tracker-test/page.tsx | Route YOLOX-s 640 diagnostiky s OpenCV optical-flow trackingem hodin | Implementováno jako test |
+| src/app/ar/object-tracking/mindar-clock-test/page.tsx | Route MindAR image trackingu konkrétních hodin | Implementováno jako experiment |
 | src/features/ar/surface-tracking/ARModelViewer.tsx | Client-only 3D viewer a AR aktivace | Implementováno |
 | src/features/ar/surface-tracking/InfiniteIceWallDemo.tsx | Client-only procedurální ledová zeď, Three.js viewer a WebXR hit-test | Implementováno jako experiment |
 | src/features/ar/image-tracking/ImageTrackingDemo.tsx | Client-only MindAR lifecycle a anchor | Implementováno |
+| src/features/ar/image-tracking/ClockMindArTrackingDemo.tsx | Client-only MindAR tracking konkrétních hodin a overlay image | Implementováno jako experiment |
 | src/features/ar/image-tracking/mind-ar.d.ts | TypeScript kontrakt pro MindAR runtime | Implementováno |
 | src/features/ar/object-tracking/ObjectTrackingDemo.tsx | Client-only AI detekce hodin, kamera a image overlay | Implementováno jako demo |
 | src/features/ar/object-tracking/YoloXClockDetectionDemo.tsx | Parametrizovaná client-only YOLOX Nano / YOLOX-s foto-kamera diagnostika a image overlay | Implementováno jako demo |
@@ -76,6 +79,8 @@ implementované.
 | public/ar/overlays/clock-overlay.png | Dočasný image overlay pro AI Object Tracking | Implementováno jako placeholder |
 | public/targets/house-target.png | Referenční obrázek dodaný uživatelem | Implementováno |
 | public/targets/house-target.mind | Zkompilovaná MindAR data targetu | Implementováno |
+| public/targets/hodiny.jfif | Referenční fotografie hodin dodaná uživatelem | Implementováno jako experiment |
+| public/targets/hodiny.mind | MindAR target z referenční fotografie hodin | Implementováno jako experiment |
 | public/*.svg | Výchozí statické assety z bootstrapu | Implementováno, bez AR odpovědnosti |
 | src/app/favicon.ico | Favicon aplikace | Implementováno |
 
