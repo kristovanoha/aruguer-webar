@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored, generated browser runtime; it is not application source.
+    "public/vendor/**",
   ]),
 ]);
 

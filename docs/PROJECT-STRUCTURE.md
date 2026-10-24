@@ -72,6 +72,7 @@ implementované.
 | public/models/ice-wall.glb | Volitelný GLB segment ledové zdi | Čeká na dodání |
 | public/models/ai/yolox_nano.onnx | Oficiální YOLOX Nano ONNX release 0.1.1rc0 (3.5 MB, Apache-2.0) | Implementováno |
 | public/models/ai/yolox_s.onnx | Oficiální YOLOX-s ONNX release 0.1.1rc0 (35.9 MB, Apache-2.0) | Implementováno jako test |
+| public/vendor/opencv-5.0.0-release.1.js | Lokální OpenCV.js runtime pro OpenCV tracker test (13 MB, Apache-2.0) | Implementováno jako test |
 | public/ar/overlays/clock-overlay.png | Dočasný image overlay pro AI Object Tracking | Implementováno jako placeholder |
 | public/targets/house-target.png | Referenční obrázek dodaný uživatelem | Implementováno |
 | public/targets/house-target.mind | Zkompilovaná MindAR data targetu | Implementováno |
