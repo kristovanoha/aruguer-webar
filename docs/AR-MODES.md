@@ -174,9 +174,9 @@ Nejde o WebXR persistentní anchor.
 Route `/ar/object-tracking/opencv-tracker-test` je samostatný experiment nad
 stejným lokálním modelem YOLOX-s 640. Po AI detekci `clock` se dynamicky načtený
 OpenCV.js 5.0.0-release.1 (Apache-2.0) používá pouze mezi AI inferencemi:
-zmenšený šedotónový snímek poskytne body `goodFeaturesToTrack`, které
+zmenšený šedotónový snímek poskytne Harrisovy rohové body, které
 `calcOpticalFlowPyrLK` sleduje mezi snímky. Z validních bodů
-`estimateAffinePartial2D` dopočítá posun, natočení a malou změnu velikosti
+`estimateAffine2D` dopočítá posun, natočení a malou změnu velikosti
 rámečku. YOLOX při každé nové detekci tracker znovu inicializuje, takže OpenCV
 neurčuje kategorii objektu ani nemůže dlouhodobě nahradit AI detekci.
 

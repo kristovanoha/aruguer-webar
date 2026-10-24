@@ -3,6 +3,7 @@ import type { MotionTrackingResult } from "./yoloxMotionTracker";
 
 type CvMat = {
   cols: number;
+  rows: number;
   data: Uint8Array;
   data32F: Float32Array;
   data64F: Float64Array;
@@ -22,9 +23,9 @@ export type OpenCvRuntime = {
   Size: new (width: number, height: number) => unknown;
   TermCriteria: new (type: number, maxCount: number, epsilon: number) => unknown;
   cvtColor(source: CvMat, destination: CvMat, code: number): void;
-  goodFeaturesToTrack(source: CvMat, corners: CvMat, maxCorners: number, qualityLevel: number, minDistance: number): void;
+  cornerHarris(source: CvMat, destination: CvMat, blockSize: number, ksize: number, k: number): void;
   calcOpticalFlowPyrLK(previous: CvMat, next: CvMat, previousPoints: CvMat, nextPoints: CvMat, status: CvMat, error: CvMat, windowSize: unknown, maxLevel: number, criteria: unknown): void;
-  estimateAffinePartial2D(source: CvMat, destination: CvMat, inliers: CvMat, method: number, threshold: number): CvMat;
+  estimateAffine2D(source: CvMat, destination: CvMat, inliers: CvMat, method: number, threshold: number): CvMat;
   imread(source: HTMLCanvasElement): CvMat;
   matFromArray(rows: number, columns: number, type: number, values: Float32Array): CvMat;
 };
@@ -171,13 +172,9 @@ export class OpenCvMotionTracker {
     const roi = gray.roi(new this.cv.Rect(x, y, width, height));
     const corners = new this.cv.Mat();
     try {
-      this.cv.goodFeaturesToTrack(roi, corners, 64, 0.003, 3);
-      if (corners.data32F.length < MINIMUM_POINTS * 2) return null;
-      const points = new Float32Array(corners.data32F.length);
-      for (let index = 0; index < corners.data32F.length; index += 2) {
-        points[index] = corners.data32F[index] + x;
-        points[index + 1] = corners.data32F[index + 1] + y;
-      }
+      this.cv.cornerHarris(roi, corners, 2, 3, 0.04);
+      const points = this.selectHarrisFeatures(corners, x, y);
+      if (points.length < MINIMUM_POINTS * 2) return null;
       return this.cv.matFromArray(points.length / 2, 1, this.cv.CV_32FC2, points);
     } finally {
       roi.delete();
@@ -203,7 +200,7 @@ export class OpenCvMotionTracker {
     const inliers = new this.cv.Mat();
     let affine: CvMat | null = null;
     try {
-      affine = this.cv.estimateAffinePartial2D(oldPoints, newPoints, inliers, this.cv.RANSAC, 4);
+      affine = this.cv.estimateAffine2D(oldPoints, newPoints, inliers, this.cv.RANSAC, 4);
       if (!affine.empty() && affine.data64F.length >= 6) {
         const transformed = this.transformBox(box, affine.data64F, sourceWidth, sourceHeight);
         if (transformed) return transformed;
@@ -235,6 +232,39 @@ export class OpenCvMotionTracker {
     const x = clamp(box.x + moveX, 0, sourceWidth - box.width);
     const y = clamp(box.y + moveY, 0, sourceHeight - box.height);
     return { ...box, x, y };
+  }
+
+  private selectHarrisFeatures(corners: CvMat, offsetX: number, offsetY: number) {
+    const values = corners.data32F;
+    let maximum = 0;
+    for (const value of values) maximum = Math.max(maximum, value);
+    if (maximum <= 0) return new Float32Array();
+    const candidates: { score: number; x: number; y: number }[] = [];
+    const minimumScore = maximum * 0.01;
+    for (let y = 2; y < corners.rows - 2; y += 2) {
+      for (let x = 2; x < corners.cols - 2; x += 2) {
+        const index = y * corners.cols + x;
+        const score = values[index];
+        if (score < minimumScore) continue;
+        if (score < values[index - 1] || score < values[index + 1] || score < values[index - corners.cols] || score < values[index + corners.cols]) continue;
+        candidates.push({ score, x: x + offsetX, y: y + offsetY });
+      }
+    }
+    candidates.sort((first, second) => second.score - first.score);
+    const selected: number[] = [];
+    for (const candidate of candidates) {
+      let tooClose = false;
+      for (let index = 0; index < selected.length; index += 2) {
+        if ((selected[index] - candidate.x) ** 2 + (selected[index + 1] - candidate.y) ** 2 < 36) {
+          tooClose = true;
+          break;
+        }
+      }
+      if (tooClose) continue;
+      selected.push(candidate.x, candidate.y);
+      if (selected.length >= 96) break;
+    }
+    return new Float32Array(selected);
   }
 
   private transformBox(box: DetectionBox, affine: Float64Array, sourceWidth: number, sourceHeight: number) {
