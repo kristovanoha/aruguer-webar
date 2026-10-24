@@ -235,14 +235,20 @@ export default function YoloXClockDetectionDemo({
       ) {
         lastMotionTrackingVideoTimeRef.current = video.currentTime;
         lastMotionTrackingAtRef.current = now;
-        const result = motionTrackerRef.current?.update(video, video.videoWidth, video.videoHeight);
-        if (result) {
-          smoothedClockRef.current = result.box;
-          setCameraDetections((detections) => [result.box, ...detections.filter((item) => item.classId !== COCO_CLOCK_CLASS_ID)]);
-          setMotionTrackingQuality(result.quality);
-          setMotionTrackingUpdates((count) => count + 1);
-        } else if (!motionTrackerRef.current?.isActive) {
+        try {
+          const result = motionTrackerRef.current?.update(video, video.videoWidth, video.videoHeight);
+          if (result) {
+            smoothedClockRef.current = result.box;
+            setCameraDetections((detections) => [result.box, ...detections.filter((item) => item.classId !== COCO_CLOCK_CLASS_ID)]);
+            setMotionTrackingQuality(result.quality);
+            setMotionTrackingUpdates((count) => count + 1);
+          } else if (!motionTrackerRef.current?.isActive) {
+            setMotionTrackingQuality(null);
+          }
+        } catch (trackingError) {
+          motionTrackerRef.current?.reset();
           setMotionTrackingQuality(null);
+          setError(`OpenCV tracker selhal: ${trackingError instanceof Error ? trackingError.message : "neznámá chyba"}`);
         }
       }
       motionTrackingFrameRef.current = requestAnimationFrame(update);

@@ -32,7 +32,7 @@ export type OpenCvRuntime = {
 type Frame = { gray: CvMat; height: number; width: number };
 
 const MAX_FRAME_WIDTH = 480;
-const MINIMUM_POINTS = 6;
+const MINIMUM_POINTS = 3;
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.max(minimum, Math.min(maximum, value));
@@ -117,25 +117,9 @@ export class OpenCvMotionTracker {
         this.reset();
         return null;
       }
-      const oldPoints = this.cv.matFromArray(matched.count, 1, this.cv.CV_32FC2, matched.oldPoints);
-      const newPoints = this.cv.matFromArray(matched.count, 1, this.cv.CV_32FC2, matched.newPoints);
-      const inliers = new this.cv.Mat();
-      const affine = this.cv.estimateAffinePartial2D(oldPoints, newPoints, inliers, this.cv.RANSAC, 3);
-      oldPoints.delete();
-      newPoints.delete();
-      if (affine.empty() || affine.data64F.length < 6) {
-        affine.delete();
-        inliers.delete();
-        frame.gray.delete();
-        this.reset();
-        return null;
-      }
-      const nextBox = this.transformBox(this.box, affine.data64F, sourceWidth, sourceHeight);
-      const inlierCount = Array.from(inliers.data).filter((value) => value !== 0).length;
-      const quality = clamp(inlierCount / matched.count, 0, 1);
-      affine.delete();
-      inliers.delete();
-      if (!nextBox || quality < 0.35) {
+      const nextBox = this.estimateNextBox(this.box, matched, sourceWidth, sourceHeight);
+      const quality = clamp(matched.count / Math.max(1, Math.floor(this.previousPoints.data32F.length / 2)), 0, 1);
+      if (!nextBox || quality < 0.2) {
         frame.gray.delete();
         this.reset();
         return null;
@@ -187,7 +171,7 @@ export class OpenCvMotionTracker {
     const roi = gray.roi(new this.cv.Rect(x, y, width, height));
     const corners = new this.cv.Mat();
     try {
-      this.cv.goodFeaturesToTrack(roi, corners, 48, 0.01, 5);
+      this.cv.goodFeaturesToTrack(roi, corners, 64, 0.003, 3);
       if (corners.data32F.length < MINIMUM_POINTS * 2) return null;
       const points = new Float32Array(corners.data32F.length);
       for (let index = 0; index < corners.data32F.length; index += 2) {
@@ -206,11 +190,51 @@ export class OpenCvMotionTracker {
     const newValues: number[] = [];
     const count = Math.min(status.data.length, Math.floor(previous.data32F.length / 2), Math.floor(next.data32F.length / 2));
     for (let index = 0; index < count; index += 1) {
-      if (status.data[index] === 0 || (error.data32F[index] ?? Number.POSITIVE_INFINITY) > 20) continue;
+      if (status.data[index] === 0 || (error.data32F[index] ?? Number.POSITIVE_INFINITY) > 45) continue;
       oldValues.push(previous.data32F[index * 2], previous.data32F[index * 2 + 1]);
       newValues.push(next.data32F[index * 2], next.data32F[index * 2 + 1]);
     }
     return { count: oldValues.length / 2, oldPoints: new Float32Array(oldValues), newPoints: new Float32Array(newValues) };
+  }
+
+  private estimateNextBox(box: DetectionBox, matched: { count: number; oldPoints: Float32Array; newPoints: Float32Array }, sourceWidth: number, sourceHeight: number) {
+    const oldPoints = this.cv.matFromArray(matched.count, 1, this.cv.CV_32FC2, matched.oldPoints);
+    const newPoints = this.cv.matFromArray(matched.count, 1, this.cv.CV_32FC2, matched.newPoints);
+    const inliers = new this.cv.Mat();
+    let affine: CvMat | null = null;
+    try {
+      affine = this.cv.estimateAffinePartial2D(oldPoints, newPoints, inliers, this.cv.RANSAC, 4);
+      if (!affine.empty() && affine.data64F.length >= 6) {
+        const transformed = this.transformBox(box, affine.data64F, sourceWidth, sourceHeight);
+        if (transformed) return transformed;
+      }
+      return this.translateBoxByMedianFlow(box, matched, sourceWidth, sourceHeight);
+    } catch {
+      return this.translateBoxByMedianFlow(box, matched, sourceWidth, sourceHeight);
+    } finally {
+      oldPoints.delete();
+      newPoints.delete();
+      affine?.delete();
+      inliers.delete();
+    }
+  }
+
+  private translateBoxByMedianFlow(box: DetectionBox, matched: { count: number; oldPoints: Float32Array; newPoints: Float32Array }, sourceWidth: number, sourceHeight: number) {
+    const deltaX: number[] = [];
+    const deltaY: number[] = [];
+    for (let index = 0; index < matched.count; index += 1) {
+      deltaX.push(matched.newPoints[index * 2] - matched.oldPoints[index * 2]);
+      deltaY.push(matched.newPoints[index * 2 + 1] - matched.oldPoints[index * 2 + 1]);
+    }
+    const median = (values: number[]) => {
+      const sorted = [...values].sort((first, second) => first - second);
+      return sorted[Math.floor(sorted.length / 2)] ?? 0;
+    };
+    const moveX = median(deltaX) * sourceWidth / this.frameWidth;
+    const moveY = median(deltaY) * sourceHeight / this.frameHeight;
+    const x = clamp(box.x + moveX, 0, sourceWidth - box.width);
+    const y = clamp(box.y + moveY, 0, sourceHeight - box.height);
+    return { ...box, x, y };
   }
 
   private transformBox(box: DetectionBox, affine: Float64Array, sourceWidth: number, sourceHeight: number) {
