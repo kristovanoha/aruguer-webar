@@ -27,22 +27,27 @@ export const COCO_LABELS = [
   "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch", "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush",
 ] as const;
 
-export function letterboxImage(image: CanvasImageSource, sourceWidth: number, sourceHeight: number) {
+export function letterboxImage(
+  image: CanvasImageSource,
+  sourceWidth: number,
+  sourceHeight: number,
+  inputSize = YOLOX_INPUT_SIZE,
+) {
   const canvas = document.createElement("canvas");
-  canvas.width = YOLOX_INPUT_SIZE;
-  canvas.height = YOLOX_INPUT_SIZE;
+  canvas.width = inputSize;
+  canvas.height = inputSize;
   const context = canvas.getContext("2d", { willReadFrequently: true });
   if (!context) throw new Error("Canvas 2D context is unavailable.");
-  const scale = Math.min(YOLOX_INPUT_SIZE / sourceWidth, YOLOX_INPUT_SIZE / sourceHeight);
+  const scale = Math.min(inputSize / sourceWidth, inputSize / sourceHeight);
   const renderedWidth = Math.round(sourceWidth * scale);
   const renderedHeight = Math.round(sourceHeight * scale);
-  const padX = Math.floor((YOLOX_INPUT_SIZE - renderedWidth) / 2);
-  const padY = Math.floor((YOLOX_INPUT_SIZE - renderedHeight) / 2);
+  const padX = Math.floor((inputSize - renderedWidth) / 2);
+  const padY = Math.floor((inputSize - renderedHeight) / 2);
   context.fillStyle = "rgb(114, 114, 114)";
-  context.fillRect(0, 0, YOLOX_INPUT_SIZE, YOLOX_INPUT_SIZE);
+  context.fillRect(0, 0, inputSize, inputSize);
   context.drawImage(image, 0, 0, sourceWidth, sourceHeight, padX, padY, renderedWidth, renderedHeight);
-  const pixels = context.getImageData(0, 0, YOLOX_INPUT_SIZE, YOLOX_INPUT_SIZE).data;
-  const planeSize = YOLOX_INPUT_SIZE * YOLOX_INPUT_SIZE;
+  const pixels = context.getImageData(0, 0, inputSize, inputSize).data;
+  const planeSize = inputSize * inputSize;
   const tensor = new Float32Array(planeSize * 3);
   for (let index = 0; index < planeSize; index += 1) {
     const pixelOffset = index * 4;
@@ -78,12 +83,17 @@ export function nonMaximumSuppression(boxes: DetectionBox[], iouThreshold = 0.45
   return accepted;
 }
 
-export function decodeYoloXOutput(output: Float32Array, transform: LetterboxTransform, minimumConfidence: number) {
+export function decodeYoloXOutput(
+  output: Float32Array,
+  transform: LetterboxTransform,
+  minimumConfidence: number,
+  inputSize = YOLOX_INPUT_SIZE,
+) {
   const boxes: DetectionBox[] = [];
   const strides = [8, 16, 32];
   let predictionIndex = 0;
   for (const stride of strides) {
-    const gridSize = YOLOX_INPUT_SIZE / stride;
+    const gridSize = inputSize / stride;
     for (let gridY = 0; gridY < gridSize; gridY += 1) {
       for (let gridX = 0; gridX < gridSize; gridX += 1) {
         const offset = predictionIndex * 85;

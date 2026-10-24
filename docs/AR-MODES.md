@@ -8,6 +8,7 @@
 | Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + netvorBeh.glb |
 | AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite2 int8 v1 | public/ar/overlays/clock-overlay.png |
 | YOLOX detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX Nano | public/models/ai/yolox_nano.onnx |
+| YOLOX-s 640 detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX-s | public/models/ai/yolox_s.onnx |
 | Vesmírná loď – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/vesmirnaLod.glb |
 | Focke-Wulf 190 – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/fockeWolf190.glb |
 | Nekonečná ledová zeď | Implementováno jako experiment | Three.js, WebXR hit-test | Procedurální placeholder / public/models/ice-wall.glb |
@@ -137,6 +138,21 @@ Nejprve lze testovat lokální fotografii, poté zadní kameru. Debug panel zobr
 vstupy, backend, inference čas, top kategorie, box před/po převodu a stav
 kamery. `Testovat překrytí` odděluje problém vykreslování od AI detekce.
 Původní MediaPipe modul se tímto nemění.
+
+## YOLOX-s 640 detekce hodin
+
+Route `/ar/object-tracking/yolox-s-demo` používá stejnou klientskou diagnostickou
+komponentu a ONNX Runtime Web jako YOLOX Nano, ale s oficiálním YOLOX-s modelem
+release 0.1.1rc0 z projektu Megvii YOLOX (Apache-2.0). Lokální soubor
+`public/models/ai/yolox_s.onnx` má SHA-256
+`c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063` a velikost
+35,858,002 B. Model pracuje se vstupem `float32[1,3,640,640]` a výstupem
+`float32[1,8400,85]`. Debug zobrazuje všechny COCO objekty, confidence, nejlepší
+detekci `clock`, souřadnice před i po přepočtu a čas inference.
+
+Model je přesnější, ale výrazně náročnější než Nano; na mobilu proto může být
+interval detekce delší. Jde pouze o samostatný test a nemění původní demo ani
+MediaPipe modul.
 
 ## AI Object Tracking demo
 

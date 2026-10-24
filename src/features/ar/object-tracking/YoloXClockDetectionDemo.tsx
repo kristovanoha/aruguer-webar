@@ -12,6 +12,12 @@ type SourceInfo = { width: number; height: number };
 const MODEL_PATH = "/models/ai/yolox_nano.onnx";
 const OVERLAY_PATH = "/ar/overlays/clock-overlay.png";
 
+type YoloXClockDetectionDemoProps = {
+  inputSize?: number;
+  modelName?: string;
+  modelPath?: string;
+};
+
 function coverBox(box: DetectionBox, source: SourceInfo, viewport: SourceInfo) {
   const scale = Math.max(viewport.width / source.width, viewport.height / source.height);
   const renderedWidth = source.width * scale;
@@ -25,7 +31,11 @@ function topDetections(detections: DetectionBox[]) {
   return [...detections].sort((a, b) => b.score - a.score).slice(0, 5);
 }
 
-export default function YoloXClockDetectionDemo() {
+export default function YoloXClockDetectionDemo({
+  inputSize = YOLOX_INPUT_SIZE,
+  modelName = "YOLOX Nano",
+  modelPath = MODEL_PATH,
+}: YoloXClockDetectionDemoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cameraHostRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -63,7 +73,7 @@ export default function YoloXClockDetectionDemo() {
     try {
       const ort = await import("onnxruntime-web");
       ort.env.wasm.numThreads = 1;
-      const session = await ort.InferenceSession.create(MODEL_PATH, { executionProviders: ["wasm"] });
+      const session = await ort.InferenceSession.create(modelPath, { executionProviders: ["wasm"] });
       sessionRef.current = session;
       ortRef.current = ort;
       setBackend("WASM");
@@ -75,21 +85,22 @@ export default function YoloXClockDetectionDemo() {
       setError(`ONNX Runtime nebo model se nepodařilo načíst: ${text}`);
       throw loadError;
     }
-  }, []);
+  }, [modelPath]);
 
   const runInference = useCallback(async (source: CanvasImageSource, dimensions: SourceInfo) => {
     const { session, ort } = await loadModel();
-    const { tensor, transform } = letterboxImage(source, dimensions.width, dimensions.height);
+    const { tensor, transform } = letterboxImage(source, dimensions.width, dimensions.height, inputSize);
     const startedAt = performance.now();
-    const output = await session.run({ images: new ort.Tensor("float32", tensor, [1, 3, YOLOX_INPUT_SIZE, YOLOX_INPUT_SIZE]) });
+    const output = await session.run({ images: new ort.Tensor("float32", tensor, [1, 3, inputSize, inputSize]) });
     const elapsed = performance.now() - startedAt;
     const result = output.output;
-    if (!(result.data instanceof Float32Array) || result.data.length !== 3549 * 85) throw new Error(`Neočekávaný výstup YOLOX: ${result.data.length} hodnot.`);
-    const detections = decodeYoloXOutput(result.data, transform, confidence);
+    const predictionCount = [8, 16, 32].reduce((total, stride) => total + (inputSize / stride) ** 2, 0);
+    if (!(result.data instanceof Float32Array) || result.data.length !== predictionCount * 85) throw new Error(`Neočekávaný výstup ${modelName}: ${result.data.length} hodnot.`);
+    const detections = decodeYoloXOutput(result.data, transform, confidence, inputSize);
     setInferenceMs(elapsed);
     setLastRawBox(detections[0] ?? null);
     return detections;
-  }, [confidence, loadModel]);
+  }, [confidence, inputSize, loadModel, modelName]);
 
   const stopCamera = useCallback(() => {
     runningRef.current = false;
@@ -161,7 +172,7 @@ export default function YoloXClockDetectionDemo() {
       await video.play();
       runningRef.current = true;
       setCameraState("running");
-      setMessage("Kamera běží. YOLOX analyzuje nové snímky bez překrývání inferencí.");
+      setMessage(`Kamera běží. ${modelName} analyzuje nové snímky bez překrývání inferencí.`);
       void runCameraDetection();
     } catch (cameraError) {
       stopCamera();
@@ -191,7 +202,7 @@ export default function YoloXClockDetectionDemo() {
       setPhotoSource(source);
       setPhotoDetections(detections);
       const hasClock = detections.some((item) => item.classId === COCO_CLOCK_CLASS_ID);
-      setMessage(hasClock ? "YOLOX rozpoznal kategorii clock." : "YOLOX dokončil inferenci, ale kategorii clock nenašel. Zkontrolujte všechny rámečky a confidence.");
+      setMessage(hasClock ? `${modelName} rozpoznal kategorii clock.` : `${modelName} dokončil inferenci, ale kategorii clock nenašel. Zkontrolujte všechny rámečky a confidence.`);
     } catch (inferenceError) {
       setError(inferenceError instanceof Error ? inferenceError.message : "Test fotografie selhal.");
     }
@@ -234,7 +245,7 @@ export default function YoloXClockDetectionDemo() {
 
       <div className="grid gap-3 rounded-3xl border border-slate-700 bg-slate-900 p-4 sm:grid-cols-2"><label className="text-sm font-semibold text-white">Minimum confidence: {confidence.toFixed(2)}<input className="mt-2 w-full accent-violet-300" type="range" min="0.1" max="0.8" step="0.05" value={confidence} onChange={(event) => setConfidence(Number(event.target.value))} /></label><label className="text-sm font-semibold text-white">Scale překryvu: {scaleFactor.toFixed(1)}<input className="mt-2 w-full accent-violet-300" type="range" min="0.5" max="1.8" step="0.1" value={scaleFactor} onChange={(event) => setScaleFactor(Number(event.target.value))} /></label><button type="button" onClick={() => setOverlayEnabled((value) => !value)} className="rounded-xl border border-slate-500 px-3 py-2 font-bold text-white">Překrytí: {overlayEnabled ? "zapnuté" : "vypnuté"}</button><button type="button" onClick={() => setManualOverlay((value) => !value)} className="rounded-xl border border-violet-300 px-3 py-2 font-bold text-violet-100">Testovat překrytí</button></div>
 
-      <div className="rounded-3xl border border-violet-300/30 bg-violet-300/10 p-4 text-sm leading-6 text-violet-50"><p id="yolox-heading" className="font-bold">YOLOX Nano diagnostika</p><p>Model: {modelState} · backend: {backend} · kamera: {cameraState} · AI vstup: 416 × 416 · kamera: {cameraSource ? `${cameraSource.width} × ${cameraSource.height}` : "–"} · inference: {inferenceMs ? `${inferenceMs.toFixed(0)} ms` : "–"}</p><p>Objekty: {diagnosticDetections.length} · nejlepší clock: {cameraClock?.score ?? photoClock?.score ? `${Math.round((cameraClock?.score ?? photoClock?.score ?? 0) * 100)} %` : "nenalezena"}</p><p>Top 5: {topDetections(diagnosticDetections).map((item) => `${item.label} ${Math.round(item.score * 100)} %`).join(" · ") || "–"}</p>{lastRawBox && <p>Box před přepočtem: {lastRawBox.rawX.toFixed(1)}, {lastRawBox.rawY.toFixed(1)}, {lastRawBox.rawWidth.toFixed(1)} × {lastRawBox.rawHeight.toFixed(1)} · po přepočtu: {lastRawBox.x.toFixed(1)}, {lastRawBox.y.toFixed(1)}, {lastRawBox.width.toFixed(1)} × {lastRawBox.height.toFixed(1)}</p>}{error && <p className="mt-2 font-semibold text-red-200">Chyba: {error}</p>}<p className="mt-2">{message}</p></div>
+      <div className="rounded-3xl border border-violet-300/30 bg-violet-300/10 p-4 text-sm leading-6 text-violet-50"><p id="yolox-heading" className="font-bold">{modelName} diagnostika</p><p>Model: {modelState} · backend: {backend} · kamera: {cameraState} · AI vstup: {inputSize} × {inputSize} · kamera: {cameraSource ? `${cameraSource.width} × ${cameraSource.height}` : "–"} · inference: {inferenceMs ? `${inferenceMs.toFixed(0)} ms` : "–"}</p><p>Objekty: {diagnosticDetections.length} · nejlepší clock: {cameraClock?.score ?? photoClock?.score ? `${Math.round((cameraClock?.score ?? photoClock?.score ?? 0) * 100)} %` : "nenalezena"}</p><p>Top 5: {topDetections(diagnosticDetections).map((item) => `${item.label} ${Math.round(item.score * 100)} %`).join(" · ") || "–"}</p>{lastRawBox && <p>Box před přepočtem: {lastRawBox.rawX.toFixed(1)}, {lastRawBox.rawY.toFixed(1)}, {lastRawBox.rawWidth.toFixed(1)} × {lastRawBox.rawHeight.toFixed(1)} · po přepočtu: {lastRawBox.x.toFixed(1)}, {lastRawBox.y.toFixed(1)}, {lastRawBox.width.toFixed(1)} × {lastRawBox.height.toFixed(1)}</p>}{error && <p className="mt-2 font-semibold text-red-200">Chyba: {error}</p>}<p className="mt-2">{message}</p></div>
     </section>
   );
 }
