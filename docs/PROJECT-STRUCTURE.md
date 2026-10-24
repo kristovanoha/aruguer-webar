@@ -25,6 +25,8 @@ Verze odpovídají package.json a package-lock.json:
 - @google/model-viewer 3.4.0 pro 3D viewer a Surface AR; verze je sladěná s
   Three.js 0.160.0 kvůli kompatibilitě s MindAR 1.2.5.
 - @mediapipe/tasks-vision 0.10.35 (Apache-2.0) pro lokální Object Detector.
+- @techstark/opencv-js 5.0.0-release.1 (Apache-2.0), dynamicky načítaný pouze
+  pro samostatný OpenCV optical-flow tracker test.
 
 Další AR frameworky a Supabase SDK nejsou v současných závislostech
 implementované.
@@ -45,6 +47,7 @@ implementované.
 | src/app/ar/object-tracking/yolox-demo/page.tsx | Route nezávislé YOLOX diagnostiky hodin | Implementováno jako demo |
 | src/app/ar/object-tracking/yolox-s-demo/page.tsx | Route samostatné YOLOX-s 640 diagnostiky hodin | Implementováno jako demo |
 | src/app/ar/object-tracking/yolox-s-tracking-demo/page.tsx | Route YOLOX-s 640 diagnostiky s průběžným trackingem hodin | Implementováno jako demo |
+| src/app/ar/object-tracking/opencv-tracker-test/page.tsx | Route YOLOX-s 640 diagnostiky s OpenCV optical-flow trackingem hodin | Implementováno jako test |
 | src/features/ar/surface-tracking/ARModelViewer.tsx | Client-only 3D viewer a AR aktivace | Implementováno |
 | src/features/ar/surface-tracking/InfiniteIceWallDemo.tsx | Client-only procedurální ledová zeď, Three.js viewer a WebXR hit-test | Implementováno jako experiment |
 | src/features/ar/image-tracking/ImageTrackingDemo.tsx | Client-only MindAR lifecycle a anchor | Implementováno |
@@ -53,6 +56,8 @@ implementované.
 | src/features/ar/object-tracking/YoloXClockDetectionDemo.tsx | Parametrizovaná client-only YOLOX Nano / YOLOX-s foto-kamera diagnostika a image overlay | Implementováno jako demo |
 | src/features/ar/object-tracking/yolox.ts | Preprocessing, YOLOX dekódování a NMS pro 416 a 640 vstup | Implementováno |
 | src/features/ar/object-tracking/yoloxMotionTracker.ts | Lehký korelační tracker rámečku mezi AI inferencemi | Implementováno jako test |
+| src/features/ar/object-tracking/openCvMotionTracker.ts | OpenCV Lucas–Kanade optical-flow tracker a afinní převod rámečku | Implementováno jako test |
+| src/features/ar/object-tracking/loadOpenCv.ts | Client-only dynamické načtení OpenCV.js | Implementováno jako test |
 | src/features/ar/surface-tracking/SpaceshipARDemo.tsx | Client-only @google/model-viewer 3D náhled a aktivace AR vesmírné lodi | Implementováno jako demo |
 | src/features/ar/surface-tracking/FockeWolf190ARDemo.tsx | Client-only 3D náhled a AR aktivace letounu | Implementováno jako demo |
 | src/features/ar/location-tracking/SkyARDemo.tsx | Client-only kamera, relativní orientace s kalibrací, Screen AR fallback a více lodí | Implementováno jako experiment |

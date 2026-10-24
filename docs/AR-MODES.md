@@ -10,6 +10,7 @@
 | YOLOX detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX Nano | public/models/ai/yolox_nano.onnx |
 | YOLOX-s 640 detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX-s | public/models/ai/yolox_s.onnx |
 | YOLOX-s 640 tracker hodin | Implementováno jako diagnostické demo | ONNX Runtime Web + YOLOX-s + obrazový tracker | public/models/ai/yolox_s.onnx |
+| OpenCV tracker test | Implementováno jako diagnostické demo | ONNX Runtime Web + YOLOX-s + OpenCV.js Lucas–Kanade optical flow | public/models/ai/yolox_s.onnx |
 | Vesmírná loď – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/vesmirnaLod.glb |
 | Focke-Wulf 190 – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/fockeWolf190.glb |
 | Nekonečná ledová zeď | Implementováno jako experiment | Three.js, WebXR hit-test | Procedurální placeholder / public/models/ice-wall.glb |
@@ -167,6 +168,24 @@ počet průběžných posunů. Pokud AI kategorii `clock` nenajde, uživatel mů
 v tomto testu tlačítkem **Ručně označit hodiny** obtáhnout hodiny prstem;
 tracker se inicializuje z vybraného obrazu a AI je dál může později opravit.
 Nejde o WebXR persistentní anchor.
+
+## OpenCV tracker test
+
+Route `/ar/object-tracking/opencv-tracker-test` je samostatný experiment nad
+stejným lokálním modelem YOLOX-s 640. Po AI detekci `clock` se dynamicky načtený
+OpenCV.js 5.0.0-release.1 (Apache-2.0) používá pouze mezi AI inferencemi:
+zmenšený šedotónový snímek poskytne body `goodFeaturesToTrack`, které
+`calcOpticalFlowPyrLK` sleduje mezi snímky. Z validních bodů
+`estimateAffinePartial2D` dopočítá posun, natočení a malou změnu velikosti
+rámečku. YOLOX při každé nové detekci tracker znovu inicializuje, takže OpenCV
+neurčuje kategorii objektu ani nemůže dlouhodobě nahradit AI detekci.
+
+OpenCV runtime se nestahuje na úvodní stránce ani v jiných YOLOX testech;
+načte se až po stisku spuštění kamery v této route. Výpočet je synchronní na
+hlavním vlákně a proto je sledovací snímek omezen šířkou 480 px a aktualizuje
+se nejvýše přibližně jednou za 45 ms. Při ztrátě příliš mnoha bodů tracker
+bezpečně uvolní data a čeká na další AI detekci. Ruční označení je diagnostický
+fallback, nikoli náhrada rozpoznání `clock`.
 
 ## AI Object Tracking demo
 
