@@ -9,6 +9,7 @@
 | AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite2 int8 v1 | public/ar/overlays/clock-overlay.png |
 | YOLOX detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX Nano | public/models/ai/yolox_nano.onnx |
 | YOLOX-s 640 detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX-s | public/models/ai/yolox_s.onnx |
+| YOLOX-s 640 tracker hodin | Implementováno jako diagnostické demo | ONNX Runtime Web + YOLOX-s + obrazový tracker | public/models/ai/yolox_s.onnx |
 | Vesmírná loď – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/vesmirnaLod.glb |
 | Focke-Wulf 190 – AR demo | Implementováno jako demo | @google/model-viewer, WebXR, Scene Viewer | public/models/fockeWolf190.glb |
 | Nekonečná ledová zeď | Implementováno jako experiment | Three.js, WebXR hit-test | Procedurální placeholder / public/models/ice-wall.glb |
@@ -153,6 +154,16 @@ detekci `clock`, souřadnice před i po přepočtu a čas inference.
 Model je přesnější, ale výrazně náročnější než Nano; na mobilu proto může být
 interval detekce delší. Jde pouze o samostatný test a nemění původní demo ani
 MediaPipe modul.
+
+## YOLOX-s 640 tracker hodin
+
+Route `/ar/object-tracking/yolox-s-tracking-demo` používá tentýž YOLOX-s 640
+model, ale mezi dokončenými AI inferencemi sleduje detail uvnitř posledního
+detekovaného rámečku lehkým korelačním trackerem nad snímky kamery. AI detekce
+zůstává zdrojem pravdy a při každé nové detekci tracker znovu inicializuje.
+Pokud normalizovaná obrazová shoda klesne pod bezpečný práh, tracker se uvolní
+a překrytí čeká na znovunalezení kategorie `clock`. Debug zobrazuje shodu a
+počet průběžných posunů. Nejde o WebXR persistentní anchor.
 
 ## AI Object Tracking demo
 

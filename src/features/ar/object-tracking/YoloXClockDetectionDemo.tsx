@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type * as Ort from "onnxruntime-web";
 import { COCO_CLOCK_CLASS_ID, type DetectionBox, decodeYoloXOutput, letterboxImage, YOLOX_INPUT_SIZE } from "./yolox";
+import { YoloXMotionTracker } from "./yoloxMotionTracker";
 
 type CameraState = "idle" | "starting" | "running" | "error";
 type ModelState = "idle" | "loading" | "ready" | "error";
@@ -16,6 +17,7 @@ type YoloXClockDetectionDemoProps = {
   inputSize?: number;
   modelName?: string;
   modelPath?: string;
+  motionTracking?: boolean;
 };
 
 function coverBox(box: DetectionBox, source: SourceInfo, viewport: SourceInfo) {
@@ -35,6 +37,7 @@ export default function YoloXClockDetectionDemo({
   inputSize = YOLOX_INPUT_SIZE,
   modelName = "YOLOX Nano",
   modelPath = MODEL_PATH,
+  motionTracking = false,
 }: YoloXClockDetectionDemoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cameraHostRef = useRef<HTMLDivElement>(null);
@@ -47,6 +50,10 @@ export default function YoloXClockDetectionDemo({
   const lastVideoTimeRef = useRef(-1);
   const smoothedClockRef = useRef<DetectionBox | null>(null);
   const runCameraDetectionRef = useRef<() => void>(() => undefined);
+  const motionTrackerRef = useRef<YoloXMotionTracker | null>(motionTracking ? new YoloXMotionTracker() : null);
+  const motionTrackingFrameRef = useRef<number | null>(null);
+  const lastMotionTrackingAtRef = useRef(0);
+  const lastMotionTrackingVideoTimeRef = useRef(-1);
 
   const [modelState, setModelState] = useState<ModelState>("idle");
   const [cameraState, setCameraState] = useState<CameraState>("idle");
@@ -65,6 +72,8 @@ export default function YoloXClockDetectionDemo({
   const [cameraViewport, setCameraViewport] = useState<SourceInfo>({ width: 0, height: 0 });
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
   const [lastRawBox, setLastRawBox] = useState<DetectionBox | null>(null);
+  const [motionTrackingQuality, setMotionTrackingQuality] = useState<number | null>(null);
+  const [motionTrackingUpdates, setMotionTrackingUpdates] = useState(0);
 
   const loadModel = useCallback(async () => {
     if (sessionRef.current && ortRef.current) return { session: sessionRef.current, ort: ortRef.current };
@@ -105,6 +114,9 @@ export default function YoloXClockDetectionDemo({
   const stopCamera = useCallback(() => {
     runningRef.current = false;
     inferenceBusyRef.current = false;
+    if (motionTrackingFrameRef.current !== null) cancelAnimationFrame(motionTrackingFrameRef.current);
+    motionTrackingFrameRef.current = null;
+    motionTrackerRef.current?.reset();
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = null;
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -115,6 +127,8 @@ export default function YoloXClockDetectionDemo({
     }
     setCameraState("idle");
     setCameraDetections([]);
+    setMotionTrackingQuality(null);
+    setMotionTrackingUpdates(0);
     smoothedClockRef.current = null;
   }, []);
 
@@ -135,10 +149,16 @@ export default function YoloXClockDetectionDemo({
         const previous = smoothedClockRef.current;
         const smoothed = previous ? { ...clock, x: previous.x + (clock.x - previous.x) * 0.35, y: previous.y + (clock.y - previous.y) * 0.35, width: previous.width + (clock.width - previous.width) * 0.35, height: previous.height + (clock.height - previous.height) * 0.35 } : clock;
         smoothedClockRef.current = smoothed;
+        if (motionTracking) {
+          if (!motionTrackerRef.current) motionTrackerRef.current = new YoloXMotionTracker();
+          motionTrackerRef.current.initialize(video, dimensions.width, dimensions.height, smoothed);
+          setMotionTrackingQuality(1);
+        }
         setCameraDetections([smoothed, ...detections.filter((item) => item.classId !== COCO_CLOCK_CLASS_ID)]);
       } else {
-        smoothedClockRef.current = null;
-        setCameraDetections(detections);
+        const trackedClock = motionTracking ? motionTrackerRef.current?.currentBox ?? null : null;
+        smoothedClockRef.current = trackedClock;
+        setCameraDetections(trackedClock ? [trackedClock, ...detections.filter((item) => item.classId !== COCO_CLOCK_CLASS_ID)] : detections);
       }
       setCameraSource(dimensions);
     } catch (inferenceError) {
@@ -147,11 +167,39 @@ export default function YoloXClockDetectionDemo({
       inferenceBusyRef.current = false;
       if (runningRef.current) timerRef.current = setTimeout(() => runCameraDetectionRef.current(), Math.max(200, (inferenceMs ?? 0) * 1.25));
     }
-  }, [inferenceMs, runInference]);
+  }, [inferenceMs, motionTracking, runInference]);
 
   useEffect(() => {
     runCameraDetectionRef.current = () => void runCameraDetection();
   }, [runCameraDetection]);
+
+  const startMotionTracking = useCallback(() => {
+    if (!motionTracking) return;
+    const update = () => {
+      const video = videoRef.current;
+      if (!runningRef.current || !video) return;
+      const now = performance.now();
+      if (
+        video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+        video.currentTime !== lastMotionTrackingVideoTimeRef.current &&
+        now - lastMotionTrackingAtRef.current >= 45
+      ) {
+        lastMotionTrackingVideoTimeRef.current = video.currentTime;
+        lastMotionTrackingAtRef.current = now;
+        const result = motionTrackerRef.current?.update(video, video.videoWidth, video.videoHeight);
+        if (result) {
+          smoothedClockRef.current = result.box;
+          setCameraDetections((detections) => [result.box, ...detections.filter((item) => item.classId !== COCO_CLOCK_CLASS_ID)]);
+          setMotionTrackingQuality(result.quality);
+          setMotionTrackingUpdates((count) => count + 1);
+        } else if (!motionTrackerRef.current?.isActive) {
+          setMotionTrackingQuality(null);
+        }
+      }
+      motionTrackingFrameRef.current = requestAnimationFrame(update);
+    };
+    motionTrackingFrameRef.current = requestAnimationFrame(update);
+  }, [motionTracking]);
 
   const startCamera = async () => {
     if (cameraState === "starting" || cameraState === "running") return;
@@ -173,6 +221,7 @@ export default function YoloXClockDetectionDemo({
       runningRef.current = true;
       setCameraState("running");
       setMessage(`Kamera běží. ${modelName} analyzuje nové snímky bez překrývání inferencí.`);
+      startMotionTracking();
       void runCameraDetection();
     } catch (cameraError) {
       stopCamera();
@@ -245,7 +294,7 @@ export default function YoloXClockDetectionDemo({
 
       <div className="grid gap-3 rounded-3xl border border-slate-700 bg-slate-900 p-4 sm:grid-cols-2"><label className="text-sm font-semibold text-white">Minimum confidence: {confidence.toFixed(2)}<input className="mt-2 w-full accent-violet-300" type="range" min="0.1" max="0.8" step="0.05" value={confidence} onChange={(event) => setConfidence(Number(event.target.value))} /></label><label className="text-sm font-semibold text-white">Scale překryvu: {scaleFactor.toFixed(1)}<input className="mt-2 w-full accent-violet-300" type="range" min="0.5" max="1.8" step="0.1" value={scaleFactor} onChange={(event) => setScaleFactor(Number(event.target.value))} /></label><button type="button" onClick={() => setOverlayEnabled((value) => !value)} className="rounded-xl border border-slate-500 px-3 py-2 font-bold text-white">Překrytí: {overlayEnabled ? "zapnuté" : "vypnuté"}</button><button type="button" onClick={() => setManualOverlay((value) => !value)} className="rounded-xl border border-violet-300 px-3 py-2 font-bold text-violet-100">Testovat překrytí</button></div>
 
-      <div className="rounded-3xl border border-violet-300/30 bg-violet-300/10 p-4 text-sm leading-6 text-violet-50"><p id="yolox-heading" className="font-bold">{modelName} diagnostika</p><p>Model: {modelState} · backend: {backend} · kamera: {cameraState} · AI vstup: {inputSize} × {inputSize} · kamera: {cameraSource ? `${cameraSource.width} × ${cameraSource.height}` : "–"} · inference: {inferenceMs ? `${inferenceMs.toFixed(0)} ms` : "–"}</p><p>Objekty: {diagnosticDetections.length} · nejlepší clock: {cameraClock?.score ?? photoClock?.score ? `${Math.round((cameraClock?.score ?? photoClock?.score ?? 0) * 100)} %` : "nenalezena"}</p><p>Top 5: {topDetections(diagnosticDetections).map((item) => `${item.label} ${Math.round(item.score * 100)} %`).join(" · ") || "–"}</p>{lastRawBox && <p>Box před přepočtem: {lastRawBox.rawX.toFixed(1)}, {lastRawBox.rawY.toFixed(1)}, {lastRawBox.rawWidth.toFixed(1)} × {lastRawBox.rawHeight.toFixed(1)} · po přepočtu: {lastRawBox.x.toFixed(1)}, {lastRawBox.y.toFixed(1)}, {lastRawBox.width.toFixed(1)} × {lastRawBox.height.toFixed(1)}</p>}{error && <p className="mt-2 font-semibold text-red-200">Chyba: {error}</p>}<p className="mt-2">{message}</p></div>
+      <div className="rounded-3xl border border-violet-300/30 bg-violet-300/10 p-4 text-sm leading-6 text-violet-50"><p id="yolox-heading" className="font-bold">{modelName} diagnostika</p><p>Model: {modelState} · backend: {backend} · kamera: {cameraState} · AI vstup: {inputSize} × {inputSize} · kamera: {cameraSource ? `${cameraSource.width} × ${cameraSource.height}` : "–"} · inference: {inferenceMs ? `${inferenceMs.toFixed(0)} ms` : "–"}</p><p>Objekty: {diagnosticDetections.length} · nejlepší clock: {cameraClock?.score ?? photoClock?.score ? `${Math.round((cameraClock?.score ?? photoClock?.score ?? 0) * 100)} %` : "nenalezena"}</p>{motionTracking && <p>Obrazový tracker: {motionTrackingQuality === null ? "čeká na clock" : `${Math.round(motionTrackingQuality * 100)} % shoda`} · průběžné posuny: {motionTrackingUpdates}</p>}<p>Top 5: {topDetections(diagnosticDetections).map((item) => `${item.label} ${Math.round(item.score * 100)} %`).join(" · ") || "–"}</p>{lastRawBox && <p>Box před přepočtem: {lastRawBox.rawX.toFixed(1)}, {lastRawBox.rawY.toFixed(1)}, {lastRawBox.rawWidth.toFixed(1)} × {lastRawBox.rawHeight.toFixed(1)} · po přepočtu: {lastRawBox.x.toFixed(1)}, {lastRawBox.y.toFixed(1)}, {lastRawBox.width.toFixed(1)} × {lastRawBox.height.toFixed(1)}</p>}{error && <p className="mt-2 font-semibold text-red-200">Chyba: {error}</p>}<p className="mt-2">{message}</p></div>
     </section>
   );
 }

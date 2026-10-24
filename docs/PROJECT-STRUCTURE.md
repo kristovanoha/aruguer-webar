@@ -44,6 +44,7 @@ implementované.
 | src/app/ar/sky/page.tsx | Route /ar/sky a kontext experimentálního Sky AR | Implementováno |
 | src/app/ar/object-tracking/yolox-demo/page.tsx | Route nezávislé YOLOX diagnostiky hodin | Implementováno jako demo |
 | src/app/ar/object-tracking/yolox-s-demo/page.tsx | Route samostatné YOLOX-s 640 diagnostiky hodin | Implementováno jako demo |
+| src/app/ar/object-tracking/yolox-s-tracking-demo/page.tsx | Route YOLOX-s 640 diagnostiky s průběžným trackingem hodin | Implementováno jako demo |
 | src/features/ar/surface-tracking/ARModelViewer.tsx | Client-only 3D viewer a AR aktivace | Implementováno |
 | src/features/ar/surface-tracking/InfiniteIceWallDemo.tsx | Client-only procedurální ledová zeď, Three.js viewer a WebXR hit-test | Implementováno jako experiment |
 | src/features/ar/image-tracking/ImageTrackingDemo.tsx | Client-only MindAR lifecycle a anchor | Implementováno |
@@ -51,6 +52,7 @@ implementované.
 | src/features/ar/object-tracking/ObjectTrackingDemo.tsx | Client-only AI detekce hodin, kamera a image overlay | Implementováno jako demo |
 | src/features/ar/object-tracking/YoloXClockDetectionDemo.tsx | Parametrizovaná client-only YOLOX Nano / YOLOX-s foto-kamera diagnostika a image overlay | Implementováno jako demo |
 | src/features/ar/object-tracking/yolox.ts | Preprocessing, YOLOX dekódování a NMS pro 416 a 640 vstup | Implementováno |
+| src/features/ar/object-tracking/yoloxMotionTracker.ts | Lehký korelační tracker rámečku mezi AI inferencemi | Implementováno jako test |
 | src/features/ar/surface-tracking/SpaceshipARDemo.tsx | Client-only @google/model-viewer 3D náhled a aktivace AR vesmírné lodi | Implementováno jako demo |
 | src/features/ar/surface-tracking/FockeWolf190ARDemo.tsx | Client-only 3D náhled a AR aktivace letounu | Implementováno jako demo |
 | src/features/ar/location-tracking/SkyARDemo.tsx | Client-only kamera, relativní orientace s kalibrací, Screen AR fallback a více lodí | Implementováno jako experiment |

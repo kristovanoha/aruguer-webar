@@ -15,7 +15,8 @@ Tok požadavku:
         -> src/app/page.tsx, src/app/ar/demo/page.tsx,
            src/app/ar/image/demo/page.tsx nebo
            src/app/ar/object-tracking/demo/page.tsx, src/app/ar/object-tracking/yolox-demo/page.tsx,
-           src/app/ar/object-tracking/yolox-s-demo/page.tsx nebo
+           src/app/ar/object-tracking/yolox-s-demo/page.tsx,
+           src/app/ar/object-tracking/yolox-s-tracking-demo/page.tsx nebo
            src/app/ar/spaceship/page.tsx, src/app/ar/focke-wolf-190/page.tsx,
            src/app/ar/demo/infinite-wall/page.tsx nebo src/app/ar/sky/page.tsx
           -> UI a client komponenty
@@ -43,6 +44,7 @@ Odpovědnosti:
 - Route /ar/demo/infinite-wall: procedurální Three.js ledová zeď s WebXR hit-testem.
 - Route /ar/object-tracking/yolox-demo: nezávislá foto/kamera diagnostika hodin přes YOLOX Nano a ONNX Runtime Web.
 - Route /ar/object-tracking/yolox-s-demo: nezávislá foto/kamera diagnostika hodin přes YOLOX-s 640 a ONNX Runtime Web.
+- Route /ar/object-tracking/yolox-s-tracking-demo: YOLOX-s 640 test hodin s průběžným obrazovým trackingem překrytí.
 - Route /ar/sky: experimentální camera overlay s relativní orientací po
   kalibraci a více instancemi stejného modelu; funguje i jako Screen AR bez
   senzorů.
@@ -55,7 +57,9 @@ Odpovědnosti:
   lokální detekci hodin, EMA stabilizaci, překryv a cleanup.
 - YoloXClockDetectionDemo: parametrizovaná client komponenta s dynamickým načtením
   ONNX Runtime Web; provádí lokální YOLOX Nano nebo YOLOX-s inferenci, NMS,
-  diagnostiku a volitelný image overlay.
+  diagnostiku, volitelný image overlay a volitelný obrazový tracker.
+- yoloxMotionTracker: lehký klientský korelační tracker, který mezi inferencemi
+  posouvá poslední AI rámeček a při slabé obrazové shodě se bezpečně uvolní.
 - SpaceshipARDemo: client komponenta s dynamickým načtením @google/model-viewer;
   používá stejný WebXR/Scene Viewer mechanismus jako ARModelViewer.
 - FockeWolf190ARDemo: client komponenta s dynamickým načtením @google/model-viewer;
