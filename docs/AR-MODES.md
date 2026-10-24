@@ -163,7 +163,10 @@ detekovaného rámečku lehkým korelačním trackerem nad snímky kamery. AI de
 zůstává zdrojem pravdy a při každé nové detekci tracker znovu inicializuje.
 Pokud normalizovaná obrazová shoda klesne pod bezpečný práh, tracker se uvolní
 a překrytí čeká na znovunalezení kategorie `clock`. Debug zobrazuje shodu a
-počet průběžných posunů. Nejde o WebXR persistentní anchor.
+počet průběžných posunů. Pokud AI kategorii `clock` nenajde, uživatel může
+v tomto testu tlačítkem **Ručně označit hodiny** obtáhnout hodiny prstem;
+tracker se inicializuje z vybraného obrazu a AI je dál může později opravit.
+Nejde o WebXR persistentní anchor.
 
 ## AI Object Tracking demo
 
