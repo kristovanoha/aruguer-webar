@@ -184,7 +184,7 @@ OpenCV runtime se nestahuje na úvodní stránce ani v jiných YOLOX testech;
 načte se až po stisku spuštění kamery v této route z lokálního verzovaného
 souboru `public/vendor/opencv-5.0.0-release.1.js`, bez CJS interopu bundleru.
 Výpočet je synchronní na
-hlavním vlákně a proto je sledovací snímek omezen šířkou 480 px a aktualizuje
+hlavním vlákně a proto je sledovací snímek omezen šířkou 640 px a aktualizuje
 se nejvýše přibližně jednou za 45 ms. Při ztrátě příliš mnoha bodů tracker
 bezpečně uvolní data a čeká na další AI detekci. Ruční označení je diagnostický
 fallback, nikoli náhrada rozpoznání `clock`.

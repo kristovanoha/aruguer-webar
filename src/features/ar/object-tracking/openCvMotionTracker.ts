@@ -32,7 +32,7 @@ export type OpenCvRuntime = {
 
 type Frame = { gray: CvMat; height: number; width: number };
 
-const MAX_FRAME_WIDTH = 480;
+const MAX_FRAME_WIDTH = 640;
 const MINIMUM_POINTS = 3;
 
 function clamp(value: number, minimum: number, maximum: number) {
@@ -168,10 +168,16 @@ export class OpenCvMotionTracker {
   private findFeatures(gray: CvMat, box: DetectionBox, sourceWidth: number, sourceHeight: number, frameWidth: number, frameHeight: number) {
     const scaleX = frameWidth / sourceWidth;
     const scaleY = frameHeight / sourceHeight;
-    const x = clamp(Math.floor(box.x * scaleX), 0, frameWidth - 1);
-    const y = clamp(Math.floor(box.y * scaleY), 0, frameHeight - 1);
-    const width = clamp(Math.ceil(box.width * scaleX), 1, frameWidth - x);
-    const height = clamp(Math.ceil(box.height * scaleY), 1, frameHeight - y);
+    const outerX = clamp(Math.floor(box.x * scaleX), 0, frameWidth - 1);
+    const outerY = clamp(Math.floor(box.y * scaleY), 0, frameHeight - 1);
+    const outerWidth = clamp(Math.ceil(box.width * scaleX), 1, frameWidth - outerX);
+    const outerHeight = clamp(Math.ceil(box.height * scaleY), 1, frameHeight - outerY);
+    const insetX = Math.floor(outerWidth * 0.08);
+    const insetY = Math.floor(outerHeight * 0.08);
+    const x = outerX + insetX;
+    const y = outerY + insetY;
+    const width = outerWidth - insetX * 2;
+    const height = outerHeight - insetY * 2;
     if (width < 12 || height < 12) return null;
     const roi = gray.roi(new this.cv.Rect(x, y, width, height));
     const corners = new this.cv.Mat();

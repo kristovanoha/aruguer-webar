@@ -68,6 +68,26 @@ function topDetections(detections: DetectionBox[]) {
   return [...detections].sort((a, b) => b.score - a.score).slice(0, 5);
 }
 
+function intersectionOverUnion(first: DetectionBox, second: DetectionBox) {
+  const left = Math.max(first.x, second.x);
+  const top = Math.max(first.y, second.y);
+  const right = Math.min(first.x + first.width, second.x + second.width);
+  const bottom = Math.min(first.y + first.height, second.y + second.height);
+  const intersection = Math.max(0, right - left) * Math.max(0, bottom - top);
+  const union = first.width * first.height + second.width * second.height - intersection;
+  return union > 0 ? intersection / union : 0;
+}
+
+function blendBox(reference: DetectionBox, measurement: DetectionBox, measurementWeight: number) {
+  return {
+    ...measurement,
+    x: reference.x + (measurement.x - reference.x) * measurementWeight,
+    y: reference.y + (measurement.y - reference.y) * measurementWeight,
+    width: reference.width + (measurement.width - reference.width) * measurementWeight,
+    height: reference.height + (measurement.height - reference.height) * measurementWeight,
+  };
+}
+
 export default function YoloXClockDetectionDemo({
   inputSize = YOLOX_INPUT_SIZE,
   modelName = "YOLOX Nano",
@@ -210,7 +230,10 @@ export default function YoloXClockDetectionDemo({
       const clock = detections.filter((item) => item.classId === COCO_CLOCK_CLASS_ID).sort((a, b) => b.score - a.score)[0] ?? null;
       if (clock) {
         const previous = smoothedClockRef.current;
-        const smoothed = previous ? { ...clock, x: previous.x + (clock.x - previous.x) * 0.35, y: previous.y + (clock.y - previous.y) * 0.35, width: previous.width + (clock.width - previous.width) * 0.35, height: previous.height + (clock.height - previous.height) * 0.35 } : clock;
+        const tracked = motionTracking ? motionTrackerRef.current?.currentBox ?? null : null;
+        const useTrackedReference = tracked && motionTrackerRef.current?.isActive && intersectionOverUnion(tracked, clock) >= 0.15;
+        const reference = useTrackedReference ? tracked : previous;
+        const smoothed = reference ? blendBox(reference, clock, useTrackedReference ? 0.16 : 0.35) : clock;
         smoothedClockRef.current = smoothed;
         if (motionTracking) {
           if (!motionTrackerRef.current) motionTrackerRef.current = createMotionTracker();
