@@ -145,7 +145,22 @@ export default function YoloXClockDetectionDemo({
     const { session, ort } = await loadModel();
     const { tensor, transform } = letterboxImage(source, dimensions.width, dimensions.height, inputSize);
     const startedAt = performance.now();
-    const output = await session.run({ images: new ort.Tensor("float32", tensor, [1, 3, inputSize, inputSize]) });
+    let output: Record<string, Ort.Tensor>;
+    try {
+      output = await session.run({ images: new ort.Tensor("float32", tensor, [1, 3, inputSize, inputSize]) });
+    } catch (runError) {
+      const text = runError instanceof Error ? runError.message : String(runError);
+      if (/invalid session id/i.test(text)) {
+        if (sessionRef.current === session) {
+          sessionRef.current = null;
+          ortRef.current = null;
+          setModelState("idle");
+        }
+        void session.release().catch(() => undefined);
+        throw new Error("ONNX relace byla zneplatněna. Model se při dalším snímku automaticky načte znovu.");
+      }
+      throw runError;
+    }
     const elapsed = performance.now() - startedAt;
     const result = output.output;
     const predictionCount = [8, 16, 32].reduce((total, stride) => total + (inputSize / stride) ** 2, 0);
@@ -190,6 +205,7 @@ export default function YoloXClockDetectionDemo({
     try {
       const dimensions = { width: video.videoWidth, height: video.videoHeight };
       const detections = await runInference(video, dimensions);
+      setError(null);
       lastVideoTimeRef.current = video.currentTime;
       const clock = detections.filter((item) => item.classId === COCO_CLOCK_CLASS_ID).sort((a, b) => b.score - a.score)[0] ?? null;
       if (clock) {

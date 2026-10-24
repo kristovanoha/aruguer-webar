@@ -51,6 +51,8 @@ export class OpenCvMotionTracker {
   private previousPoints: CvMat | null = null;
   private frameHeight = 0;
   private frameWidth = 0;
+  private filteredMoveX = 0;
+  private filteredMoveY = 0;
   private updatesSinceReseed = 0;
 
   constructor(private readonly cv: OpenCvRuntime) {}
@@ -70,6 +72,8 @@ export class OpenCvMotionTracker {
     this.previousGray = null;
     this.previousPoints = null;
     this.updatesSinceReseed = 0;
+    this.filteredMoveX = 0;
+    this.filteredMoveY = 0;
   }
 
   initialize(video: HTMLVideoElement, sourceWidth: number, sourceHeight: number, box: DetectionBox) {
@@ -183,18 +187,29 @@ export class OpenCvMotionTracker {
   }
 
   private collectMatches(previous: CvMat, next: CvMat, status: CvMat, error: CvMat) {
-    const oldValues: number[] = [];
-    const newValues: number[] = [];
+    const candidates: { newX: number; newY: number; oldX: number; oldY: number }[] = [];
     const count = Math.min(status.data.length, Math.floor(previous.data32F.length / 2), Math.floor(next.data32F.length / 2));
     for (let index = 0; index < count; index += 1) {
       if (status.data[index] === 0 || (error.data32F[index] ?? Number.POSITIVE_INFINITY) > 45) continue;
-      oldValues.push(previous.data32F[index * 2], previous.data32F[index * 2 + 1]);
-      newValues.push(next.data32F[index * 2], next.data32F[index * 2 + 1]);
+      candidates.push({ oldX: previous.data32F[index * 2], oldY: previous.data32F[index * 2 + 1], newX: next.data32F[index * 2], newY: next.data32F[index * 2 + 1] });
+    }
+    if (candidates.length < MINIMUM_POINTS) return { count: 0, oldPoints: new Float32Array(), newPoints: new Float32Array() };
+    const median = (values: number[]) => [...values].sort((first, second) => first - second)[Math.floor(values.length / 2)] ?? 0;
+    const medianX = median(candidates.map((point) => point.newX - point.oldX));
+    const medianY = median(candidates.map((point) => point.newY - point.oldY));
+    const maximumDeviation = Math.max(3, Math.hypot(medianX, medianY) * 0.45 + 3);
+    const stable = candidates.filter((point) => Math.hypot(point.newX - point.oldX - medianX, point.newY - point.oldY - medianY) <= maximumDeviation);
+    const oldValues: number[] = [];
+    const newValues: number[] = [];
+    for (const point of stable) {
+      oldValues.push(point.oldX, point.oldY);
+      newValues.push(point.newX, point.newY);
     }
     return { count: oldValues.length / 2, oldPoints: new Float32Array(oldValues), newPoints: new Float32Array(newValues) };
   }
 
   private estimateNextBox(box: DetectionBox, matched: { count: number; oldPoints: Float32Array; newPoints: Float32Array }, sourceWidth: number, sourceHeight: number) {
+    const medianBox = this.translateBoxByMedianFlow(box, matched, sourceWidth, sourceHeight);
     const oldPoints = this.cv.matFromArray(matched.count, 1, this.cv.CV_32FC2, matched.oldPoints);
     const newPoints = this.cv.matFromArray(matched.count, 1, this.cv.CV_32FC2, matched.newPoints);
     const inliers = new this.cv.Mat();
@@ -203,11 +218,19 @@ export class OpenCvMotionTracker {
       affine = this.cv.estimateAffine2D(oldPoints, newPoints, inliers, this.cv.RANSAC, 4);
       if (!affine.empty() && affine.data64F.length >= 6) {
         const transformed = this.transformBox(box, affine.data64F, sourceWidth, sourceHeight);
-        if (transformed) return transformed;
+        if (transformed) {
+          const affineCenterX = transformed.x + transformed.width / 2;
+          const affineCenterY = transformed.y + transformed.height / 2;
+          const medianCenterX = medianBox.x + medianBox.width / 2;
+          const medianCenterY = medianBox.y + medianBox.height / 2;
+          const isConsistent = Math.hypot(affineCenterX - medianCenterX, affineCenterY - medianCenterY) < Math.max(12, Math.min(box.width, box.height) * 0.15);
+          const isSimilarScale = transformed.width / box.width > 0.8 && transformed.width / box.width < 1.2 && transformed.height / box.height > 0.8 && transformed.height / box.height < 1.2;
+          if (isConsistent && isSimilarScale) return transformed;
+        }
       }
-      return this.translateBoxByMedianFlow(box, matched, sourceWidth, sourceHeight);
+      return medianBox;
     } catch {
-      return this.translateBoxByMedianFlow(box, matched, sourceWidth, sourceHeight);
+      return medianBox;
     } finally {
       oldPoints.delete();
       newPoints.delete();
@@ -227,10 +250,13 @@ export class OpenCvMotionTracker {
       const sorted = [...values].sort((first, second) => first - second);
       return sorted[Math.floor(sorted.length / 2)] ?? 0;
     };
-    const moveX = median(deltaX) * sourceWidth / this.frameWidth;
-    const moveY = median(deltaY) * sourceHeight / this.frameHeight;
-    const x = clamp(box.x + moveX, 0, sourceWidth - box.width);
-    const y = clamp(box.y + moveY, 0, sourceHeight - box.height);
+    const maximumMove = Math.max(4, Math.min(box.width, box.height) * 0.12);
+    const rawMoveX = clamp(median(deltaX) * sourceWidth / this.frameWidth, -maximumMove, maximumMove);
+    const rawMoveY = clamp(median(deltaY) * sourceHeight / this.frameHeight, -maximumMove, maximumMove);
+    this.filteredMoveX = this.filteredMoveX * 0.55 + rawMoveX * 0.45;
+    this.filteredMoveY = this.filteredMoveY * 0.55 + rawMoveY * 0.45;
+    const x = clamp(box.x + this.filteredMoveX, 0, sourceWidth - box.width);
+    const y = clamp(box.y + this.filteredMoveY, 0, sourceHeight - box.height);
     return { ...box, x, y };
   }
 
