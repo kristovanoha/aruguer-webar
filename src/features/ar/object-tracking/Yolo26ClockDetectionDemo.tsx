@@ -21,9 +21,8 @@ function coverBox(box: DetectionBox, source: SourceInfo, viewport: SourceInfo) {
   return { left: (viewport.width - renderedWidth) / 2 + box.x * scale, top: (viewport.height - renderedHeight) / 2 + box.y * scale, width: box.width * scale, height: box.height * scale };
 }
 
-function blendBox(previous: DetectionBox | null, next: DetectionBox) {
+function blendBox(previous: DetectionBox | null, next: DetectionBox, weight: number) {
   if (!previous) return next;
-  const weight = 0.28;
   return { ...next, x: previous.x + (next.x - previous.x) * weight, y: previous.y + (next.y - previous.y) * weight, width: previous.width + (next.width - previous.width) * weight, height: previous.height + (next.height - previous.height) * weight };
 }
 
@@ -47,6 +46,7 @@ export default function Yolo26ClockDetectionDemo() {
   const viewportRef = useRef<SourceInfo>({ width: 0, height: 0 });
   const horizontalRotationRef = useRef(0);
   const verticalRotationRef = useRef(0);
+  const trackingResponsivenessRef = useRef(0.72);
   const [cameraState, setCameraState] = useState<CameraState>("idle");
   const [modelState, setModelState] = useState<ModelState>("idle");
   const [runtime, setRuntime] = useState("–");
@@ -62,6 +62,7 @@ export default function Yolo26ClockDetectionDemo() {
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [horizontalRotation, setHorizontalRotation] = useState(0);
   const [verticalRotation, setVerticalRotation] = useState(0);
+  const [trackingResponsiveness, setTrackingResponsiveness] = useState(0.72);
   const lastInferenceAtRef = useRef(0);
 
   const releaseModel = useCallback(() => {
@@ -228,9 +229,9 @@ export default function Yolo26ClockDetectionDemo() {
       if (detection) {
         stableCountRef.current += 1;
         setStableDetections(stableCountRef.current);
-        const smoothed = blendBox(overlayBoxRef.current, detection);
+        const smoothed = blendBox(overlayBoxRef.current, detection, trackingResponsivenessRef.current);
         setClock(smoothed);
-        if (stableCountRef.current >= REQUIRED_STABLE_DETECTIONS) {
+        if (overlayLockedRef.current || stableCountRef.current >= REQUIRED_STABLE_DETECTIONS) {
           overlayBoxRef.current = smoothed;
           overlayLockedRef.current = true;
           setOverlayVisible(true);
@@ -244,9 +245,9 @@ export default function Yolo26ClockDetectionDemo() {
       setError(detectionError instanceof Error ? detectionError.message : "Inference selhala.");
     } finally {
       busyRef.current = false;
-      if (runningRef.current) timerRef.current = setTimeout(() => detectRef.current(), Math.max(80, (inferenceMs ?? 0) * 0.35));
+      if (runningRef.current) timerRef.current = setTimeout(() => detectRef.current(), 0);
     }
-  }, [confidence, inferenceMs, loadModel]);
+  }, [confidence, loadModel]);
 
   useEffect(() => {
     detectRef.current = () => void detect();
@@ -293,7 +294,7 @@ export default function Yolo26ClockDetectionDemo() {
   return <section className="space-y-4" aria-labelledby="yolo26-heading">
     <div ref={hostRef} className="relative aspect-[3/4] min-h-[420px] overflow-hidden rounded-3xl border border-slate-700 bg-slate-950 sm:aspect-video"><video ref={videoRef} muted playsInline className="absolute inset-0 h-full w-full object-cover" aria-label="Živá zadní kamera pro YOLO26" />{cameraState !== "running" && <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-slate-300">Klikněte na spuštění živé kamery.</div>}{visibleBox && <div className="pointer-events-none absolute border-2 border-emerald-300" style={visibleBox}><span className="absolute left-0 top-0 -translate-y-full whitespace-nowrap bg-slate-950 px-1.5 py-0.5 text-[10px] font-bold text-white">clock {Math.round((clock?.score ?? 0) * 100)} %</span></div>}</div>
     <div className="grid gap-3 sm:grid-cols-2"><button type="button" onClick={() => void startCamera()} disabled={cameraState === "starting" || cameraState === "running"} className="rounded-2xl bg-emerald-300 px-5 py-3.5 font-bold text-slate-950 disabled:cursor-not-allowed disabled:bg-slate-700">{cameraState === "starting" ? "Spouštím…" : "Spustit živou kameru"}</button><button type="button" onClick={stopCamera} disabled={cameraState !== "running"} className="rounded-2xl border border-slate-500 bg-slate-900 px-5 py-3.5 font-bold text-white disabled:cursor-not-allowed disabled:text-slate-500">Zastavit kameru</button></div>
-    <div className="grid gap-3 rounded-2xl border border-slate-700 bg-slate-900 p-4 sm:grid-cols-3"><label className="text-sm font-semibold text-white">Minimum confidence: {confidence.toFixed(2)}<input className="mt-3 w-full accent-emerald-300" type="range" min="0.2" max="0.8" step="0.05" value={confidence} onChange={(event) => setConfidence(Number(event.target.value))} /></label><label className="text-sm font-semibold text-white">Horizontální otočení: {horizontalRotation}°<input className="mt-3 w-full accent-emerald-300" type="range" min="-180" max="180" step="5" value={horizontalRotation} onChange={(event) => { const value = Number(event.target.value); horizontalRotationRef.current = value; setHorizontalRotation(value); }} /></label><label className="text-sm font-semibold text-white">Vertikální náklon: {verticalRotation}°<input className="mt-3 w-full accent-emerald-300" type="range" min="-180" max="180" step="5" value={verticalRotation} onChange={(event) => { const value = Number(event.target.value); verticalRotationRef.current = value; setVerticalRotation(value); }} /></label></div>
+    <div className="grid gap-3 rounded-2xl border border-slate-700 bg-slate-900 p-4 sm:grid-cols-4"><label className="text-sm font-semibold text-white">Minimum confidence: {confidence.toFixed(2)}<input className="mt-3 w-full accent-emerald-300" type="range" min="0.2" max="0.8" step="0.05" value={confidence} onChange={(event) => setConfidence(Number(event.target.value))} /></label><label className="text-sm font-semibold text-white">Rychlost sledování: {Math.round(trackingResponsiveness * 100)} %<input className="mt-3 w-full accent-emerald-300" type="range" min="0.2" max="1" step="0.05" value={trackingResponsiveness} onChange={(event) => { const value = Number(event.target.value); trackingResponsivenessRef.current = value; setTrackingResponsiveness(value); }} /></label><label className="text-sm font-semibold text-white">Horizontální otočení: {horizontalRotation}°<input className="mt-3 w-full accent-emerald-300" type="range" min="-180" max="180" step="5" value={horizontalRotation} onChange={(event) => { const value = Number(event.target.value); horizontalRotationRef.current = value; setHorizontalRotation(value); }} /></label><label className="text-sm font-semibold text-white">Vertikální náklon: {verticalRotation}°<input className="mt-3 w-full accent-emerald-300" type="range" min="-180" max="180" step="5" value={verticalRotation} onChange={(event) => { const value = Number(event.target.value); verticalRotationRef.current = value; setVerticalRotation(value); }} /></label></div>
     <div className="rounded-3xl border border-emerald-300/30 bg-emerald-300/10 p-4 text-sm leading-6 text-emerald-50"><p id="yolo26-heading" className="font-bold">YOLO26n diagnostika</p><p>Model: {modelState} · runtime: {runtime} · kamera: {cameraState} · vstup: 640 × 640 · inference: {inferenceMs ? `${inferenceMs.toFixed(0)} ms` : "–"} · FPS: {fps ? fps.toFixed(1) : "–"}</p><p>Clock: {clock ? `${Math.round(clock.score * 100)} %` : "nenalezena"} · stabilní detekce: {stableDetections}/{REQUIRED_STABLE_DETECTIONS} · 3D overlay: {overlayVisible ? "viditelný" : "čeká"}</p>{error && <p className="mt-2 font-semibold text-red-200">Chyba: {error}</p>}<p className="mt-2">{message}</p><p className="mt-2 text-emerald-100/80">Jde o 2D ukotvení podle obrázku kamery, nikoli o skutečný prostorový AR anchor.</p></div>
   </section>;
 }

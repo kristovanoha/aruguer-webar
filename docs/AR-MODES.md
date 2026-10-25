@@ -159,7 +159,9 @@ Při inicializaci se nejdřív zkusí ONNX Runtime WebGPU a při selhání se be
 přepne na WASM. Vedle boxu a confidence diagnostika zobrazuje aktivní runtime,
 čas inference a dosažené FPS. Paralelní inference je blokována; objekt Three.js
 se zobrazí až po třech po sobě jdoucích detekcích a jeho 2D pozice se EMA
-vyhlazuje. Po prvním stabilním nalezení zůstane loď viditelná až do ručního
+vyhlazuje. Po prvním stabilním nalezení se pozice aktualizuje při každé další
+detekci; rychlost vyhlazování lze v UI měnit v rozsahu 20–100 % (výchozí 72 %).
+Po prvním stabilním nalezení zůstane loď viditelná až do ručního
 zastavení kamery; při dočasné ztrátě detekce tedy nebliká a ponechá poslední
 vyhlazenou pozici. Jde o 2D překrytí v obrazovém prostoru kamery, ne o WebXR
 anchor v reálném prostoru. Three.js při
