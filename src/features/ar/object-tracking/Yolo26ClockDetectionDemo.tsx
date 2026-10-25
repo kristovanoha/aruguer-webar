@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type * as Ort from "onnxruntime-web";
-import type { Mesh, OrthographicCamera, Scene, WebGLRenderer } from "three";
+import type { Group, OrthographicCamera, Scene, WebGLRenderer } from "three";
 import type { DetectionBox } from "./yolox";
 import { decodeYolo26ClockOutput, letterboxYolo26Image, YOLO26_INPUT_SIZE } from "./yolo26";
 
 type CameraState = "idle" | "starting" | "running" | "error";
 type ModelState = "idle" | "loading" | "ready" | "error";
 type SourceInfo = { height: number; width: number };
-type OverlayRuntime = { camera: OrthographicCamera; object: Mesh; renderer: WebGLRenderer; scene: Scene };
+type OverlayRuntime = { camera: OrthographicCamera; object: Group; renderer: WebGLRenderer; scene: Scene };
 
 const MODEL_PATH = "/models/ai/yolo26n.onnx";
 const REQUIRED_STABLE_DETECTIONS = 3;
@@ -106,16 +106,30 @@ export default function Yolo26ClockDetectionDemo() {
   const createOverlay = useCallback(async () => {
     const host = hostRef.current;
     if (!host || overlayRuntimeRef.current) return;
-    const three = await import("three");
+    const [three, { GLTFLoader }] = await Promise.all([
+      import("three"),
+      import("three/examples/jsm/loaders/GLTFLoader.js"),
+    ]);
     const renderer = new three.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.domElement.className = "pointer-events-none absolute inset-0 h-full w-full";
     host.append(renderer.domElement);
     const scene = new three.Scene();
     const camera = new three.OrthographicCamera(0, 1, 1, 0, -10, 10);
-    const object = new three.Mesh(new three.TorusKnotGeometry(0.7, 0.22, 64, 10), new three.MeshStandardMaterial({ color: 0x34d399, emissive: 0x064e3b, metalness: 0.35, roughness: 0.25 }));
+    const object = new three.Group();
+    const gltf = await new GLTFLoader().loadAsync("/models/tlustochNaZdi.glb");
+    const model = gltf.scene;
+    const bounds = new three.Box3().setFromObject(model);
+    const size = bounds.getSize(new three.Vector3());
+    const center = bounds.getCenter(new three.Vector3());
+    const largestDimension = Math.max(size.x, size.y, size.z, 0.001);
+    model.position.sub(center);
+    model.scale.setScalar(1 / largestDimension);
+    object.add(model);
     object.visible = false;
-    scene.add(object, new three.AmbientLight(0xffffff, 2), new three.DirectionalLight(0xffffff, 2));
+    const keyLight = new three.DirectionalLight(0xffffff, 2.5);
+    keyLight.position.set(1, 1, 2);
+    scene.add(object, new three.AmbientLight(0xffffff, 2), keyLight);
     overlayRuntimeRef.current = { camera, object, renderer, scene };
     const render = () => {
       const current = overlayRuntimeRef.current;
@@ -142,9 +156,11 @@ export default function Yolo26ClockDetectionDemo() {
     animationFrameRef.current = null;
     const overlay = overlayRuntimeRef.current;
     if (!overlay) return;
-    overlay.object.geometry.dispose();
-    const material = overlay.object.material;
-    if (Array.isArray(material)) material.forEach((item) => item.dispose()); else material.dispose();
+    overlay.object.traverse((node) => {
+      const mesh = node as typeof node & { geometry?: { dispose(): void }; material?: { dispose(): void } | { dispose(): void }[] };
+      mesh.geometry?.dispose();
+      if (Array.isArray(mesh.material)) mesh.material.forEach((material) => material.dispose()); else mesh.material?.dispose();
+    });
     overlay.renderer.dispose();
     overlay.renderer.forceContextLoss();
     overlay.renderer.domElement.remove();
@@ -237,7 +253,7 @@ export default function Yolo26ClockDetectionDemo() {
       runningRef.current = true;
       await createOverlay();
       setCameraState("running");
-      setMessage("Kamera běží. Objekt se zobrazí až po třech po sobě jdoucích detekcích hodin.");
+      setMessage("Kamera běží. Model tlustochNaZdi se zobrazí až po třech po sobě jdoucích detekcích hodin.");
       detectRef.current();
     } catch (startError) {
       stopCamera();

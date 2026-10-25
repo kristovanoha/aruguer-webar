@@ -160,7 +160,10 @@ přepne na WASM. Vedle boxu a confidence diagnostika zobrazuje aktivní runtime,
 čas inference a dosažené FPS. Paralelní inference je blokována; objekt Three.js
 se zobrazí až po třech po sobě jdoucích detekcích, jeho 2D pozice se EMA
 vyhlazuje a po ztrátě detekce zůstane nejvýše 500 ms. Jde o 2D překrytí v
-obrazovém prostoru kamery, ne o WebXR anchor v reálném prostoru.
+obrazovém prostoru kamery, ne o WebXR anchor v reálném prostoru. Three.js při
+spuštění kamery dynamicky načte `public/models/tlustochNaZdi.glb`, automaticky
+jej vycentruje a znormalizuje na detekovaný box. Model má přibližně 38 MB,
+proto je nutné ověřit paměť a načítání na mobilních zařízeních.
 
 YOLO26 a jeho předtrénované modely jsou ve výchozím režimu licencovány pod
 AGPL-3.0. Podle [licenčního přehledu Ultralytics](https://www.ultralytics.com/license)

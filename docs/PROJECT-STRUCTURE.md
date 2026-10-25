@@ -75,6 +75,7 @@ implementované.
 | public/models/netvorBeh.glb | Lokální GLB model netvora pro Surface AR a Image Tracking | Implementováno |
 | public/models/vesmirnaLod.glb | Lokální GLB model vesmírné lodi (přibližně 83 MB) | Implementováno jako demo |
 | public/models/fockeWolf190.glb | Lokální GLB model letounu Focke-Wulf 190 (přibližně 21 MB) | Implementováno jako demo |
+| public/models/tlustochNaZdi.glb | Lokální GLB model pro YOLO26 2D overlay (přibližně 38 MB) | Implementováno jako test |
 | public/models/ice-wall.glb | Volitelný GLB segment ledové zdi | Čeká na dodání |
 | public/models/ai/yolox_nano.onnx | Oficiální YOLOX Nano ONNX release 0.1.1rc0 (3.5 MB, Apache-2.0) | Implementováno |
 | public/models/ai/yolo26n.onnx | Oficiální Ultralytics YOLO26n ONNX v8.4.0 (9.5 MB, AGPL-3.0) | Implementováno jako neprodukční test |
