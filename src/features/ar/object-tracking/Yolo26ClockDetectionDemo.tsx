@@ -124,8 +124,12 @@ export default function Yolo26ClockDetectionDemo() {
     renderer.domElement.className = "pointer-events-none absolute inset-0 h-full w-full";
     host.append(renderer.domElement);
     const scene = new three.Scene();
-    const camera = new three.OrthographicCamera(0, 1, 1, 0, 0.1, 10);
-    camera.position.z = 5;
+    // The overlay uses CSS-pixel coordinates. A normalized GLB is scaled to the
+    // detection box, so its depth can be hundreds of those units as well.
+    // Keep the camera depth proportional to the canvas to avoid clipping deep models.
+    const camera = new three.OrthographicCamera(0, 1, 1, 0, 0.1, 4);
+    camera.position.z = 2;
+    renderer.outputColorSpace = three.SRGBColorSpace;
     const object = new three.Group();
     const gltf = await new GLTFLoader().loadAsync("/models/vesmirnaLod.glb");
     const model = gltf.scene;
@@ -147,9 +151,12 @@ export default function Yolo26ClockDetectionDemo() {
       const width = host.clientWidth;
       const height = host.clientHeight;
       if (width > 0 && height > 0) {
+        const cameraDepth = Math.max(width, height) * 2;
         current.renderer.setSize(width, height, false);
         current.camera.right = width;
         current.camera.bottom = height;
+        current.camera.position.z = cameraDepth;
+        current.camera.far = cameraDepth * 2;
         current.camera.updateProjectionMatrix();
         updateOverlay();
         current.renderer.render(current.scene, current.camera);

@@ -168,6 +168,8 @@ tomto testu automaticky neotáčí; je natočený čelem k 2D kameře a jeho vel
 odpovídá přibližně 88 % menší strany detekčního boxu hodin.
 UI testu navíc umožňuje horizontální otočení a vertikální náklon v rozsahu
 −180° až 180° jako lokální korekci základní orientace.
+Hloubkový rozsah ortografické kamery se přizpůsobuje velikosti obrazovky, aby
+při zvětšení 3D lodi nedocházelo k ořezání její geometrie.
 
 YOLO26 a jeho předtrénované modely jsou ve výchozím režimu licencovány pod
 AGPL-3.0. Podle [licenčního přehledu Ultralytics](https://www.ultralytics.com/license)
