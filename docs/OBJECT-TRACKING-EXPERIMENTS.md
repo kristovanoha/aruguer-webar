@@ -24,6 +24,7 @@ omezena kvalitou detekčního boxu a dostupnými obrazovými detaily.
 | 2026-10-24 | OpenCV Harrisovy rohy + `calcOpticalFlowPyrLK` + `estimateAffine2D` | Spouští se bez chybějících API, ale překrytí stále není dostatečně přesné. | Optický tok s body v detekčním boxu sám o sobě nestačí pro přesné ukotvení. |
 | 2026-10-24 | Filtrování odlehlých bodů, medián pohybu, vyhlazení, 640px tracker, jemná YOLOX korekce | Implementováno; uživatel hlásí, že výsledek stále není dostatečný. | Dále nezvyšovat složitost stejného boxového optical-flow přístupu bez měřitelného zlepšení. |
 | 2026-10-24 | MindAR image tracking z `hodiny.jfif` | Implementováno jako samostatný test; target `hodiny.mind` byl lokálně zkompilován. Fyzický test zatím neproveden. | Ověřit na stejných fyzických hodinách, z podobného pohledu a při dobrém světle. |
+| 2026-10-25 | YOLO26n COCO přes ONNX Runtime Web | Implementován samostatný test s ověřeným vstupem `[1,3,640,640]` a NMS-free výstupem `[1,300,6]`; fyzický test zatím neproveden. | Pro uzavřenou komerční produkci nepoužívat bez vyřešení licence Ultralytics Enterprise nebo AGPL-3.0 compliance. |
 
 ## Aktuální stav
 

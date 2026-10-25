@@ -46,6 +46,7 @@ implementované.
 | src/app/ar/focke-wolf-190/page.tsx | Route /ar/focke-wolf-190 a kontext Surface AR letounu | Implementováno |
 | src/app/ar/sky/page.tsx | Route /ar/sky a kontext experimentálního Sky AR | Implementováno |
 | src/app/ar/object-tracking/yolox-demo/page.tsx | Route nezávislé YOLOX diagnostiky hodin | Implementováno jako demo |
+| src/app/ar/vision/yolo26-clock/page.tsx | Route samostatného YOLO26n COCO testu hodin | Implementováno jako test |
 | src/app/ar/object-tracking/yolox-s-demo/page.tsx | Route samostatné YOLOX-s 640 diagnostiky hodin | Implementováno jako demo |
 | src/app/ar/object-tracking/yolox-s-tracking-demo/page.tsx | Route YOLOX-s 640 diagnostiky s průběžným trackingem hodin | Implementováno jako demo |
 | src/app/ar/object-tracking/opencv-tracker-test/page.tsx | Route YOLOX-s 640 diagnostiky s OpenCV optical-flow trackingem hodin | Implementováno jako test |
@@ -57,7 +58,9 @@ implementované.
 | src/features/ar/image-tracking/mind-ar.d.ts | TypeScript kontrakt pro MindAR runtime | Implementováno |
 | src/features/ar/object-tracking/ObjectTrackingDemo.tsx | Client-only AI detekce hodin, kamera a image overlay | Implementováno jako demo |
 | src/features/ar/object-tracking/YoloXClockDetectionDemo.tsx | Parametrizovaná client-only YOLOX Nano / YOLOX-s foto-kamera diagnostika a image overlay | Implementováno jako demo |
+| src/features/ar/object-tracking/Yolo26ClockDetectionDemo.tsx | Client-only YOLO26n kamera, ONNX WebGPU/WASM inference a Three.js 2D overlay | Implementováno jako test |
 | src/features/ar/object-tracking/yolox.ts | Preprocessing, YOLOX dekódování a NMS pro 416 a 640 vstup | Implementováno |
+| src/features/ar/object-tracking/yolo26.ts | YOLO26 RGB letterbox a dekódování ověřeného NMS-free výstupu | Implementováno jako test |
 | src/features/ar/object-tracking/yoloxMotionTracker.ts | Lehký korelační tracker rámečku mezi AI inferencemi | Implementováno jako test |
 | src/features/ar/object-tracking/openCvMotionTracker.ts | OpenCV Lucas–Kanade optical-flow tracker a afinní převod rámečku | Implementováno jako test |
 | src/features/ar/object-tracking/loadOpenCv.ts | Client-only dynamické načtení OpenCV.js | Implementováno jako test |
@@ -74,6 +77,7 @@ implementované.
 | public/models/fockeWolf190.glb | Lokální GLB model letounu Focke-Wulf 190 (přibližně 21 MB) | Implementováno jako demo |
 | public/models/ice-wall.glb | Volitelný GLB segment ledové zdi | Čeká na dodání |
 | public/models/ai/yolox_nano.onnx | Oficiální YOLOX Nano ONNX release 0.1.1rc0 (3.5 MB, Apache-2.0) | Implementováno |
+| public/models/ai/yolo26n.onnx | Oficiální Ultralytics YOLO26n ONNX v8.4.0 (9.5 MB, AGPL-3.0) | Implementováno jako neprodukční test |
 | public/models/ai/yolox_s.onnx | Oficiální YOLOX-s ONNX release 0.1.1rc0 (35.9 MB, Apache-2.0) | Implementováno jako test |
 | public/vendor/opencv-5.0.0-release.1.js | Lokální OpenCV.js runtime pro OpenCV tracker test (13 MB, Apache-2.0) | Implementováno jako test |
 | public/ar/overlays/clock-overlay.png | Dočasný image overlay pro AI Object Tracking | Implementováno jako placeholder |

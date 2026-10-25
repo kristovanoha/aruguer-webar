@@ -8,6 +8,7 @@
 | Image Tracking | Implementováno jako demo | MindAR 1.2.5 + Three.js 0.160.0 | public/targets/house-target.mind + netvorBeh.glb |
 | AI Object Tracking | Implementováno jako demo | MediaPipe Tasks Vision 0.10.35 + EfficientDet-Lite2 int8 v1 | public/ar/overlays/clock-overlay.png |
 | YOLOX detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX Nano | public/models/ai/yolox_nano.onnx |
+| YOLO26 Clock Detection | Implementováno jako test | ONNX Runtime Web + YOLO26n + Three.js 2D overlay | public/models/ai/yolo26n.onnx |
 | YOLOX-s 640 detekce hodin | Implementováno jako diagnostické demo | ONNX Runtime Web 1.30.0 + YOLOX-s | public/models/ai/yolox_s.onnx |
 | YOLOX-s 640 tracker hodin | Implementováno jako diagnostické demo | ONNX Runtime Web + YOLOX-s + obrazový tracker | public/models/ai/yolox_s.onnx |
 | OpenCV tracker test | Implementováno jako diagnostické demo | ONNX Runtime Web + YOLOX-s + OpenCV.js Lucas–Kanade optical flow | public/models/ai/yolox_s.onnx |
@@ -141,6 +142,31 @@ Nejprve lze testovat lokální fotografii, poté zadní kameru. Debug panel zobr
 vstupy, backend, inference čas, top kategorie, box před/po převodu a stav
 kamery. `Testovat překrytí` odděluje problém vykreslování od AI detekce.
 Původní MediaPipe modul se tímto nemění.
+
+## YOLO26 Clock Detection
+
+Route `/ar/vision/yolo26-clock` je samostatný test a nemění YOLOX Nano ani
+ostatní object-tracking dema. Používá oficiální Ultralytics YOLO26n ONNX asset
+z release `v8.4.0`, uložený lokálně jako `public/models/ai/yolo26n.onnx`
+(SHA-256 `2e947b787d9e787b93a16772a5f55b1d4d8c4d86f53146149c5d6a642442d6f7`).
+Lokálně ověřený kontrakt modelu je vstup `images float32[1,3,640,640]` a
+výstup `output0 float32[1,300,6]`. Vstup používá RGB, NCHW, normalizaci 0–1
+a letterbox s šedým paddingem; šest hodnot výstupu je `x1, y1, x2, y2, score,
+classId`. Test filtruje pouze COCO `clock` ID 74, proto nad těmito výsledky
+neprovádí další NMS.
+
+Při inicializaci se nejdřív zkusí ONNX Runtime WebGPU a při selhání se bezpečně
+přepne na WASM. Vedle boxu a confidence diagnostika zobrazuje aktivní runtime,
+čas inference a dosažené FPS. Paralelní inference je blokována; objekt Three.js
+se zobrazí až po třech po sobě jdoucích detekcích, jeho 2D pozice se EMA
+vyhlazuje a po ztrátě detekce zůstane nejvýše 500 ms. Jde o 2D překrytí v
+obrazovém prostoru kamery, ne o WebXR anchor v reálném prostoru.
+
+YOLO26 a jeho předtrénované modely jsou ve výchozím režimu licencovány pod
+AGPL-3.0. Podle [licenčního přehledu Ultralytics](https://www.ultralytics.com/license)
+je pro uzavřenou, komerční nebo interní aplikaci nutná Enterprise licence,
+pokud celý navazující projekt nechcete zveřejnit pod AGPL-3.0. Tento test proto
+není automaticky právně vhodný pro plánovanou uzavřenou produkci.
 
 ## YOLOX-s 640 detekce hodin
 
