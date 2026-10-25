@@ -163,7 +163,9 @@ vyhlazuje a po ztrátě detekce zůstane nejvýše 500 ms. Jde o 2D překrytí v
 obrazovém prostoru kamery, ne o WebXR anchor v reálném prostoru. Three.js při
 spuštění kamery dynamicky načte `public/models/tlustochNaZdi.glb`, automaticky
 jej vycentruje a znormalizuje na detekovaný box. Model má přibližně 38 MB,
-proto je nutné ověřit paměť a načítání na mobilních zařízeních.
+proto je nutné ověřit paměť a načítání na mobilních zařízeních. Model se v
+tomto testu automaticky neotáčí; je natočený čelem k 2D kameře a jeho velikost
+odpovídá přibližně 88 % menší strany detekčního boxu hodin.
 
 YOLO26 a jeho předtrénované modely jsou ve výchozím režimu licencovány pod
 AGPL-3.0. Podle [licenčního přehledu Ultralytics](https://www.ultralytics.com/license)

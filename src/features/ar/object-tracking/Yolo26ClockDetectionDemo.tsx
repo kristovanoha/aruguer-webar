@@ -97,8 +97,11 @@ export default function Yolo26ClockDetectionDemo() {
     const videoSource = sourceRef.current;
     if (!overlay || !tracked || !videoSource) return;
     const geometry = coverBox(tracked, videoSource, viewportRef.current);
-    const size = Math.max(20, Math.min(geometry.width, geometry.height) * 0.3);
-    overlay.object.position.set(geometry.left + geometry.width / 2, geometry.top + geometry.height / 2, 0);
+    const centerX = geometry.left + geometry.width / 2;
+    const centerY = geometry.top + geometry.height / 2;
+    const size = Math.max(20, Math.min(geometry.width, geometry.height) * 0.88);
+    overlay.object.position.set(centerX, centerY, 0);
+    overlay.object.lookAt(centerX, centerY, overlay.camera.position.z);
     overlay.object.scale.set(size, size, size);
     overlay.object.visible = performance.now() - lastOverlayAtRef.current <= LOST_DETECTION_GRACE_MS;
   }, []);
@@ -115,7 +118,8 @@ export default function Yolo26ClockDetectionDemo() {
     renderer.domElement.className = "pointer-events-none absolute inset-0 h-full w-full";
     host.append(renderer.domElement);
     const scene = new three.Scene();
-    const camera = new three.OrthographicCamera(0, 1, 1, 0, -10, 10);
+    const camera = new three.OrthographicCamera(0, 1, 1, 0, 0.1, 10);
+    camera.position.z = 5;
     const object = new three.Group();
     const gltf = await new GLTFLoader().loadAsync("/models/tlustochNaZdi.glb");
     const model = gltf.scene;
@@ -142,8 +146,6 @@ export default function Yolo26ClockDetectionDemo() {
         current.camera.bottom = height;
         current.camera.updateProjectionMatrix();
         updateOverlay();
-        current.object.rotation.x += 0.012;
-        current.object.rotation.y += 0.018;
         current.renderer.render(current.scene, current.camera);
       }
       animationFrameRef.current = requestAnimationFrame(render);
