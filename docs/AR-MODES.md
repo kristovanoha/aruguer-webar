@@ -158,9 +158,11 @@ neprovádí další NMS.
 Při inicializaci se nejdřív zkusí ONNX Runtime WebGPU a při selhání se bezpečně
 přepne na WASM. Vedle boxu a confidence diagnostika zobrazuje aktivní runtime,
 čas inference a dosažené FPS. Paralelní inference je blokována; objekt Three.js
-se zobrazí až po třech po sobě jdoucích detekcích, jeho 2D pozice se EMA
-vyhlazuje a po ztrátě detekce zůstane nejvýše 500 ms. Jde o 2D překrytí v
-obrazovém prostoru kamery, ne o WebXR anchor v reálném prostoru. Three.js při
+se zobrazí až po třech po sobě jdoucích detekcích a jeho 2D pozice se EMA
+vyhlazuje. Po prvním stabilním nalezení zůstane loď viditelná až do ručního
+zastavení kamery; při dočasné ztrátě detekce tedy nebliká a ponechá poslední
+vyhlazenou pozici. Jde o 2D překrytí v obrazovém prostoru kamery, ne o WebXR
+anchor v reálném prostoru. Three.js při
 spuštění kamery dynamicky načte `public/models/vesmirnaLod.glb`, automaticky
 jej vycentruje a znormalizuje na detekovaný box. Model má přibližně 87 MB,
 proto je nutné ověřit paměť a načítání na mobilních zařízeních. Model se v

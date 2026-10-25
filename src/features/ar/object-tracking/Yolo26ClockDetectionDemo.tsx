@@ -13,7 +13,6 @@ type OverlayRuntime = { camera: OrthographicCamera; object: Group; renderer: Web
 
 const MODEL_PATH = "/models/ai/yolo26n.onnx";
 const REQUIRED_STABLE_DETECTIONS = 3;
-const LOST_DETECTION_GRACE_MS = 500;
 
 function coverBox(box: DetectionBox, source: SourceInfo, viewport: SourceInfo) {
   const scale = Math.max(viewport.width / source.width, viewport.height / source.height);
@@ -41,7 +40,7 @@ export default function Yolo26ClockDetectionDemo() {
   const detectRef = useRef<() => void>(() => undefined);
   const lastVideoTimeRef = useRef(-1);
   const stableCountRef = useRef(0);
-  const lastOverlayAtRef = useRef(0);
+  const overlayLockedRef = useRef(false);
   const overlayBoxRef = useRef<DetectionBox | null>(null);
   const overlayRuntimeRef = useRef<OverlayRuntime | null>(null);
   const sourceRef = useRef<SourceInfo | null>(null);
@@ -109,7 +108,7 @@ export default function Yolo26ClockDetectionDemo() {
     overlay.object.rotateY(horizontalRotationRef.current * Math.PI / 180);
     overlay.object.rotateX(verticalRotationRef.current * Math.PI / 180);
     overlay.object.scale.set(size, size, size);
-    overlay.object.visible = performance.now() - lastOverlayAtRef.current <= LOST_DETECTION_GRACE_MS;
+    overlay.object.visible = overlayLockedRef.current;
   }, []);
 
   const createOverlay = useCallback(async () => {
@@ -194,6 +193,7 @@ export default function Yolo26ClockDetectionDemo() {
     releaseModel();
     overlayBoxRef.current = null;
     stableCountRef.current = 0;
+    overlayLockedRef.current = false;
     setStableDetections(0);
     setOverlayVisible(false);
     setClock(null);
@@ -232,14 +232,13 @@ export default function Yolo26ClockDetectionDemo() {
         setClock(smoothed);
         if (stableCountRef.current >= REQUIRED_STABLE_DETECTIONS) {
           overlayBoxRef.current = smoothed;
-          lastOverlayAtRef.current = performance.now();
+          overlayLockedRef.current = true;
           setOverlayVisible(true);
         }
       } else {
         stableCountRef.current = 0;
         setStableDetections(0);
         setClock(overlayBoxRef.current);
-        if (performance.now() - lastOverlayAtRef.current > LOST_DETECTION_GRACE_MS) setOverlayVisible(false);
       }
     } catch (detectionError) {
       setError(detectionError instanceof Error ? detectionError.message : "Inference selhala.");
