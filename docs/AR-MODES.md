@@ -161,8 +161,8 @@ přepne na WASM. Vedle boxu a confidence diagnostika zobrazuje aktivní runtime,
 se zobrazí až po třech po sobě jdoucích detekcích, jeho 2D pozice se EMA
 vyhlazuje a po ztrátě detekce zůstane nejvýše 500 ms. Jde o 2D překrytí v
 obrazovém prostoru kamery, ne o WebXR anchor v reálném prostoru. Three.js při
-spuštění kamery dynamicky načte `public/models/tlustochNaZdi.glb`, automaticky
-jej vycentruje a znormalizuje na detekovaný box. Model má přibližně 38 MB,
+spuštění kamery dynamicky načte `public/models/vesmirnaLod.glb`, automaticky
+jej vycentruje a znormalizuje na detekovaný box. Model má přibližně 87 MB,
 proto je nutné ověřit paměť a načítání na mobilních zařízeních. Model se v
 tomto testu automaticky neotáčí; je natočený čelem k 2D kameře a jeho velikost
 odpovídá přibližně 88 % menší strany detekčního boxu hodin.

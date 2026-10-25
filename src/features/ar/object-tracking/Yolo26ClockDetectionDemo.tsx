@@ -127,7 +127,7 @@ export default function Yolo26ClockDetectionDemo() {
     const camera = new three.OrthographicCamera(0, 1, 1, 0, 0.1, 10);
     camera.position.z = 5;
     const object = new three.Group();
-    const gltf = await new GLTFLoader().loadAsync("/models/tlustochNaZdi.glb");
+    const gltf = await new GLTFLoader().loadAsync("/models/vesmirnaLod.glb");
     const model = gltf.scene;
     const bounds = new three.Box3().setFromObject(model);
     const size = bounds.getSize(new three.Vector3());
@@ -261,7 +261,7 @@ export default function Yolo26ClockDetectionDemo() {
       runningRef.current = true;
       await createOverlay();
       setCameraState("running");
-      setMessage("Kamera běží. Model tlustochNaZdi se zobrazí až po třech po sobě jdoucích detekcích hodin.");
+      setMessage("Kamera běží. Vesmírná loď se zobrazí až po třech po sobě jdoucích detekcích hodin.");
       detectRef.current();
     } catch (startError) {
       stopCamera();
